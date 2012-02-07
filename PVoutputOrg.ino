@@ -72,7 +72,7 @@ void webservicePVoutputOrg::preparePacket(unsigned long totalkWhGenerated,unsign
     "X-Pvoutput-Apikey: $F" "\r\n"
     "X-Pvoutput-SystemId: $F" "\r\n"
     "Accept: */*\r\n"
-    "User-Agent: NanodeSMAPVMonitor" "\r\n"
+    //"User-Agent: NanodeSMAPVMonitor" "\r\n"
     "Content-Type: application/x-www-form-urlencoded\r\n"
     "Content-Length: $D" "\r\n"
     "\r\n"

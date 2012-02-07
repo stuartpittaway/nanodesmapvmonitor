@@ -24,7 +24,6 @@ void WebSiteService::CountDown () {
   if (this->minutecountdownvalue > 0) {
     this->minutecountdownvalue-=1;
   }
-  //Serial.print(F("CountDown="));Serial.println(minutecountdownvalue);
 }//end function
 
 void WebSiteService::begin() {

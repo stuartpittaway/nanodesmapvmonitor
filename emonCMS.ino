@@ -1,4 +1,4 @@
-/*
+﻿/*
 NANODE SMA PV MONITOR
  
  Latest version found at https://github.com/stuartpittaway/nanodesmapvmonitor
@@ -18,51 +18,38 @@ NANODE SMA PV MONITOR
  All code is copyright Stuart Pittaway, (c)2012.
  */
 
-char pachubewebsite[] PROGMEM = "api.pachube.com";
+char emoncmswebsite[] PROGMEM = "vis.openenergymonitor.org";
 
-int webservicePachube::getTimerResetValue (){
+
+int webserviceemonCMS::getTimerResetValue (){
   //Number of minutes between uploads
   return 1;
 }//end function
 
 
-bool webservicePachube::dnsLookup() {
+bool webserviceemonCMS::dnsLookup() {
   //Think the pvoutputwebsite should be moved into a function inside the base class then overridden from the child, can we return prog_char* ??
-  return ether.dnsLookup( pachubewebsite );
+  return ether.dnsLookup( emoncmswebsite );
 }
 
-void webservicePachube::preparePacket(unsigned long totalkWhGenerated,unsigned long spotTotalPowerAC, time_t dt) 
+void webserviceemonCMS::preparePacket(unsigned long totalkWhGenerated,unsigned long spotTotalPowerAC, time_t dt) 
 { 
   byte sd = stash.create(); 
-  stash.print(F("{\"version\":\"1.0.0\",\"datastreams\":["));
-  //PV Generation
-  stash.print(F("{\"id\":\"1\",\"current_value\":\""));
+  stash.print(F("{\"solarkw\":\""));
+  stash.print(spotTotalPowerAC);
+  stash.print(F("\",\"solarkwh\":\""));
   stash.print((double)totalkWhGenerated/(double)1000);
   stash.print(F("\"}"));
-  //Spot power
-  stash.print(F(",{\"id\":\"4\",\"current_value\":\""));
-  stash.print(spotTotalPowerAC);
-  stash.print(F("\"}"));
-  //Uptime in whole seconds
-  stash.print(F(",{\"id\":\"2\",\"current_value\":\""));
-  stash.print(millis()/1000);
-  stash.print(F("\"}"));
-
-  //Nanode RAM Memory Free
-  stash.print(F(",{\"id\":\"3\",\"current_value\":\""));
-  stash.print(freeMemory());
-  stash.print(F("\"}"));
-  stash.print(F("]}"));
   stash.save();
 
-  Stash::prepare(PSTR("PUT http://$F/v2/feeds/$F.json HTTP/1.0" "\r\n"
+#define EMONCMSAPIKEY "8XXXXXXXXXXXXXXXXXXX0b"
+
+  Stash::prepare(PSTR("PUT http://$F/emoncms3/api/post.json?apikey=$F&json=$H HTTP/1.0" "\r\n"
     "Host: $F" "\r\n"
-    "X-PachubeApiKey: $F" "\r\n"
     //"User-Agent: NanodeSMAPVMonitor" "\r\n"
     "Content-Length: $D" "\r\n"
-    "\r\n"
-    "$H"),
-  pachubewebsite,PSTR(PACHUBEFEED), pachubewebsite, PSTR(PACHUBEAPIKEY), stash.size(), sd);
+    "\r\n"),
+  emoncmswebsite,PSTR(EMONCMSAPIKEY),sd,emoncmswebsite, 0);
 
 }
 

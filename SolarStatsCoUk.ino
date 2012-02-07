@@ -60,7 +60,7 @@ void webserviceSolarStats::preparePacket(unsigned long totalkWhGenerated,unsigne
   d[4]='-';
 
   char watthour[12];
-  ultoa(currentvalue,watthour,10);
+  ultoa(totalkWhGenerated,watthour,10);
   byte sd = stash.create(); 
 
   //Perhaps use instead...
@@ -69,10 +69,10 @@ void webserviceSolarStats::preparePacket(unsigned long totalkWhGenerated,unsigne
   stash.print(F("GET http://www.solarstats.co.uk/api/Update.ashx?apikey="));
   //Would like to do... stash.print(solarstatswebsite);
 
-  stash.print(F("XXXXXXXXXX"));
+  stash.print(F("6AAEA7C448"));
 
   stash.print(F("&apipassword=")); 
-  stash.print(F("YYYYYYYYYY"));
+  stash.print(F("8E4279FE0A"));
 
   stash.print(F("&date="));
   stash.print(d);
@@ -82,7 +82,8 @@ void webserviceSolarStats::preparePacket(unsigned long totalkWhGenerated,unsigne
   stash.print(watthour);
 
   stash.print(F(" HTTP/1.0\r\nHost: www.solarstats.co.uk\r\n"));
-  stash.print(F("User-Agent: NanodeSMAPVMonitor\r\nContent-Length: 0 \r\n"));
+  //stash.print(F("User-Agent: NanodeSMAPVMonitor\r\n"));
+  stash.print(F("Content-Length: 0 \r\n"));
   stash.print(F("\r\n"));
   stash.save();
 

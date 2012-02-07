@@ -81,5 +81,12 @@ public:
   int getTimerResetValue();
 };
 
-
+class webserviceemonCMS : 
+public WebSiteService
+{
+public:
+  bool dnsLookup();
+  void preparePacket(unsigned long totalkWhGenerated,unsigned long spotTotalPowerAC, time_t dt) ;
+  int getTimerResetValue();
+};
 

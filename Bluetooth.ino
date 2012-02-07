@@ -50,27 +50,6 @@ void quickblink() {
   digitalWrite( RED_LED, HIGH);
 }
 
-
-/*
-void testreceiveloop() 
-{ 
-
-  //Loop whilst there is data available from serial
-  while(blueToothSerial.available()) {
-    unsigned char a=blueToothSerial.read();    
-    if (a==0x7e) Serial.println("");    
-    if (a<=0xf) Serial.print("0");
-    Serial.print(a,HEX);
-  }
-
-  digitalWrite( RED_LED, HIGH);
-  delay(1000);
-  digitalWrite( RED_LED, LOW);
-  delay(1000);
-}
-*/
-
-
 void BTInitStartup(bool ForcePair) {
   BTSwitchOff();
 
@@ -126,11 +105,11 @@ void BTScanForSMAInverterToPairWith()
   //Send AT wake up
   BTSendStringAndWait(retstring,F("AT"));
   //Firmware Version = +VERSION=2.0-20100601
-  BTSendStringAndWait(retstring,F("AT+VERSION?"));
+  //BTSendStringAndWait(retstring,F("AT+VERSION?"));
   //Factory reset to defaults
   BTSendStringAndWait(retstring,F("AT+ORGL"));
   //Name of chip
-  BTSendStringAndWait(retstring,F("AT+NAME=NANODE_SMA_SOLAR"));
+  //BTSendStringAndWait(retstring,F("AT+NAME=NANODE_SMA_SOLAR"));
   //Set password to zeros
   BTSendStringAndWait(retstring,F("AT+PSWD=0000"));
   //MASTER mode
@@ -223,7 +202,7 @@ void BTScanForSMAInverterToPairWith()
   delay(100);
   digitalWrite(BT_KEY, LOW);    // Turn off command mode
   delay(500);  
-  debugMsgln("Bluetooth configure. Finished.");
+  //debugMsgln("Bluetooth configure. Finished.");
 }
 
 

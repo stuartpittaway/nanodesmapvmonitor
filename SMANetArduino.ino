@@ -81,11 +81,11 @@ void readLevel1PacketFromBluetoothStream(int index) {
         packetlength=index+level1headerlength;
         packetposition=index;
       } 
-      else Serial.println(F("Pkt wrng snder"));
+      else Serial.println(F("P wrng snder"));
     } 
-    else Serial.println(F("Pkt wrng dest"));
+    else Serial.println(F("P wrng dest"));
   } 
-  else Serial.println(F("Invalid hdr"));
+  else Serial.println(F("Inv hdr"));
 }
 
 void prepareToReceive(){

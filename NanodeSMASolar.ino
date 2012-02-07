@@ -37,9 +37,11 @@
 
 
 #undef debugMsgln 
-#define debugMsgln(s) (__extension__(  {Serial.println(F(s));}  ))
+//#define debugMsgln(s) (__extension__(  {Serial.println(F(s));}  ))
+#define debugMsgln(s) (__extension__(  {delay(0);}  ))
 #undef debugMsg
-#define debugMsg(s) (__extension__(  {Serial.print(F(s));}  ))
+//#define debugMsg(s) (__extension__(  {Serial.print(F(s));}  ))
+#define debugMsg(s) (__extension__(  { delay(0); }  ))
 
 
 byte Ethernet::buffer[650]; // tcp/ip send and receive buffer
@@ -93,7 +95,7 @@ unsigned char SMAInverterPasscode[]={
 void setup() 
 { 
   Serial.begin(115200);          //Serial port for debugging output
-  debugMsgln("PWR UP");
+  //debugMsgln("PWR UP");
 
   pinMode(RED_LED, OUTPUT);
   digitalWrite( RED_LED, HIGH);
@@ -111,7 +113,7 @@ void setup()
   debugMsgln("DHCP");
   if (ether.begin(sizeof Ethernet::buffer, mymac) == 0)
   { 
-    debugMsgln("Fail Ethernet chip"); 
+    debugMsgln("Fail Ether chip"); 
     error(); 
   }
 
@@ -132,10 +134,9 @@ void setup()
 
 void loop() 
 { 
-  debugMsgln("LOOP..");
+  //debugMsgln("LOOP..");
 
-
-  HowMuchMemory();
+  //HowMuchMemory();
 
   initialiseSMAConnection();
 
@@ -156,6 +157,9 @@ void loop()
 
   webservicePVoutputOrg pvoutputorg; 
   pvoutputorg.begin();
+  
+  webserviceemonCMS emoncms;
+  emoncms.begin();
 
   //We dont actually use the value this returns, but we can set the clock from its reply
   getDailyYield();
@@ -203,6 +207,7 @@ void loop()
       getTotalPowerGeneration();
 
       //Upload value to various websites/services, depending upon frequency
+      emoncms.CountDownAndUpload(currentvalue,spotpowerac,datetime);
 
       solarstats.CountDownAndUpload(currentvalue,spotpowerac,datetime);     
 
@@ -221,7 +226,7 @@ void loop()
 
       if ( (now() > (datetime+3600)) && (spotpowerac==0)) {
         //Inverter output hasnt changed for an hour, so put Nanode to sleep till the morning
-        debugMsgln("Time for bed");
+        debugMsgln("Bed time");
 
         //Workout what time sunrise is and sleep till then...
         //longitude, latitude (london uk=-0.126236,51.500152)
@@ -234,9 +239,7 @@ void loop()
         datetime=checktime+80000;        
       }
 
-      debugMsg("Waiting for... ");
-      digitalClockDisplay( checktime );
-      debugMsgln("");
+      //debugMsg("Wait for ");digitalClockDisplay( checktime );debugMsgln("");
     }
   }//end while
 } 

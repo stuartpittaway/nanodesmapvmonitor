@@ -1,0 +1,80 @@
+NANODE SMA PV MONITOR
+
+Latest version found at https://github.com/stuartpittaway/nanodesmapvmonitor
+Licence
+Attribution-NonCommercial-ShareAlike 3.0 Unported (CC BY-NC-SA 3.0)
+http://creativecommons.org/licenses/by-nc-sa/3.0/
+
+You are free:
+    to Share — to copy, distribute and transmit the work
+    to Remix — to adapt the work
+Under the following conditions:
+    Attribution — You must attribute the work in the manner specified by the author or licensor (but not in any way that suggests that they endorse you or your use of the work).
+    Noncommercial — You may not use this work for commercial purposes.
+    Share Alike — If you alter, transform, or build upon this work, you may distribute the resulting work only under the same or similar license to this one.
+
+Work is copyright Stuart Pittaway, (c)2012.
+What does this do?
+This program/sketch/code turns an Nanode (Arduino) based hardware board equiped with a Bluetooth module into a solar photovoltaic data capture and upload system.  Its designed to only work with the SMA range of inverters using the Bluetooth protocols.
+
+What SMA Inverters does it work on?
+
+    Tested with SMA3000HF, 3000TL, 4000TL - but in theory should work with all Bluetooth enabled inverters, please email me with your success/failure stories and I'll update/fix !
+
+ Limitations
+
+    May have problems if other devices are communicating with the inverter at the same time (avoid using SunnyBeam or SunnyExplorer at the same time)
+    Not tested on multiple inverter setups on the same network
+
+Connections & Pin out
+The bluetooth module is a cheap ebay import (search for Arduino bluetooth) similar to this picture.  These are commonly sold as HC04/HC05/HC06 modules.
+
+The bluetooth module is connected to the ANALOGUE ports on the Nanode (on Nanode v5, these are nearest the reset switch).  The BT module power is drawn from pin 5 of the Arduino (digital pin) which allows you to power the BT module on/off from code to save power and also help with resets.
+
+PINS ARE DEFINED AS CONSTANTS/DEFINE STATEMENTS IN BLUETOOTH.H FILE
+
+The module has 6 connections
+state = not used/connected
+rxd  = connected to pin 16 (analogue)
+txd  = connected to pin 17 (analogue)
+gnd  = connected to 0v/gnd (near 74hc125 chip)
+vcc  = connected to pin 5 (digital pin)
+key  = connected to pin 15 (analogue)
+
+The bluetooth chip I used was a re-flashed (firmware replaced) HC04 module, which made it behave as a HC05 module (capable of master mode) once this firmware is applied, the pin out of the module changes, and the LED will no longer flash, to fix this, connect solder pin/pad on the BT module. My Bt module pcb was marked with the code "BT_BOARD_M/S_V1.01".  PIN 31 (4 down from top right with antenna at top)
+
+The knowledge for re-flashing the module came from http://byron76.blogspot.com/2011/09/upgrade-your-bluetooth-module.html
+
+I used a simple interface to a printer parallel port and some resistors and soldered 4 wires directly to the BT module/chip to program it.
+
+Using the Software/Code
+You will need to modify the code (see APIKey.h for constants) to configure your passwords/keys for Pachube/SolarStats.co.uk and PVOutput.org sites and disable which ones you don’t need.
+
+You can also set the longitude/latitude of your location and the code will automatically determine when to wake up the monitoring of PV from sunrise.
+
+Once the code is uploaded to the Arduino/nanode device, make PIN14 high and power on the board, this forces automatic SMA inverter scan/discovery over bluetooth.
+
+PIN 14 (analogue) is used to launch the SMA inverter bluetooth scanning function - this could be connected to a switch (normally low) and when pressed (made high) during power on/reset the software begins scanning for the inverter and if successful, stores the address of the inverter in the EEPROM and programs the BT module to automatically connect to the inverter at every power on.  I simply used a piece of wire and hard wired the pin to 0v to stop it floating high.
+
+Connect a serial cable to the nanode board (115000,8,n,1 baud rates) to see debug messages.
+
+You should see messages like...
+PWR UP
+free mem=401
+MAC=0004A32C1F88
+DHCP
+IP:192.168.1.102
+GW:192.168.1.1
+DNS:8.8.8.8
+LOOP..
+free mem=341
+*Logon*
+Fake time resync
+*LOOP*
+22:16:27 20120207
+22:16:29 20120207
+22:16:32 20120207
+22:16:34 20120207
+
+The code still needs integration and heavy reduction in program space (occupies over 30KBi).  Approximately 300 bytes of RAM are free during operation.
+Comments are left where the instant PV power output could be integrated into OpenEnergyMonitor GLCD project.

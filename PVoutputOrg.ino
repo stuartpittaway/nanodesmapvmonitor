@@ -79,9 +79,6 @@ void webservicePVoutputOrg::preparePacket(unsigned long totalkWhGenerated,unsign
     "$H"),
   pvoutputwebsite,pvoutputwebsite, PSTR(PVOUTPUTAPIKEY),PSTR(PVOUTPUTSYSTEMID), stash.size(), sd);
 
-  // send the packet - this also releases all stash buffers once done
-  ether.tcpSend();
-
 }//end function
 
 

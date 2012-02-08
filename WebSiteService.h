@@ -18,10 +18,6 @@ NANODE SMA PV MONITOR
  All code is copyright Stuart Pittaway, (c)2012.
  */
 
-
-
-
-
 class WebSiteService 
 {  
 private:  
@@ -34,7 +30,9 @@ public:
   virtual void preparePacket(unsigned long totalkWhGenerated,unsigned long spotTotalPowerAC, time_t dt);
   virtual bool dnsLookup();
 
-  void formatTwoDigits(char* strOut, int num);
+  //void formatTwoDigits(char* strOut, int num);
+  void stashPrintTwoDigits(byte num);
+  
   void CountDown ();
   void lookupDNSHostIP() ;
   void CountDownAndUpload(unsigned long totalkWhGenerated,unsigned long spotTotalPowerAC, time_t dt) ;
@@ -80,6 +78,8 @@ public:
   void preparePacket(unsigned long totalkWhGenerated,unsigned long spotTotalPowerAC, time_t dt) ;
   int getTimerResetValue();
 };
+
+
 
 class webserviceemonCMS : 
 public WebSiteService

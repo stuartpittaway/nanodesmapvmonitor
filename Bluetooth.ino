@@ -105,11 +105,11 @@ void BTScanForSMAInverterToPairWith()
   //Send AT wake up
   BTSendStringAndWait(retstring,F("AT"));
   //Firmware Version = +VERSION=2.0-20100601
-  //BTSendStringAndWait(retstring,F("AT+VERSION?"));
+  BTSendStringAndWait(retstring,F("AT+VERSION?"));
   //Factory reset to defaults
   BTSendStringAndWait(retstring,F("AT+ORGL"));
   //Name of chip
-  //BTSendStringAndWait(retstring,F("AT+NAME=NANODE_SMA_SOLAR"));
+  BTSendStringAndWait(retstring,F("AT+NAME=NANODE_SMA_SOLAR"));
   //Set password to zeros
   BTSendStringAndWait(retstring,F("AT+PSWD=0000"));
   //MASTER mode
@@ -295,7 +295,7 @@ unsigned char getByte() {
   time = 60000+millis(); 
 
   if (blueToothSerial.overflow()) {
-    debugMsgln("Overflow"); 
+    debugMsgln("Overflw"); 
   }
 
   while (blueToothSerial.available()==false) {

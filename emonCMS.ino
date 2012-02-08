@@ -1,4 +1,4 @@
-﻿/*
+/*
 NANODE SMA PV MONITOR
  
  Latest version found at https://github.com/stuartpittaway/nanodesmapvmonitor
@@ -42,7 +42,7 @@ void webserviceemonCMS::preparePacket(unsigned long totalkWhGenerated,unsigned l
   stash.print(F("\"}"));
   stash.save();
 
-#define EMONCMSAPIKEY "8XXXXXXXXXXXXXXXXXXX0b"
+
 
   Stash::prepare(PSTR("PUT http://$F/emoncms3/api/post.json?apikey=$F&json=$H HTTP/1.0" "\r\n"
     "Host: $F" "\r\n"

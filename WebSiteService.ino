@@ -33,6 +33,7 @@ void WebSiteService::begin() {
 }
 
 void WebSiteService::lookupDNSHostIP() {
+  debugMsgln("DNS lookup"); 
   if (this->dnsLookup())
   {
     ether.copyIp(this->hostip,ether.hisip);
@@ -40,6 +41,7 @@ void WebSiteService::lookupDNSHostIP() {
   } 
   else { 
     debugMsgln("DNS fail"); 
+    error();
   }
 }//end function
 
@@ -51,11 +53,20 @@ void WebSiteService::setIPAddress() {
   ether.copyIp(ether.hisip, this->hostip);
 }
 
-void WebSiteService::formatTwoDigits(char* strOut, int num)
+
+void WebSiteService::stashPrintTwoDigits(byte num)
 {
-  strOut[0] = '0' + (num / 10);
-  strOut[1] = '0' + (num % 10);
+  stash.write('0' + (num / 10));
+  stash.write('0' + (num % 10));
 }
+
+/*
+void WebSiteService::formatTwoDigits(char* strOut, int num)
+ {
+ strOut[0] = '0' + (num / 10);
+ strOut[1] = '0' + (num % 10);
+ }
+ */
 
 void WebSiteService::CountDownAndUpload(unsigned long totalkWhGenerated,unsigned long spotTotalPowerAC, time_t dt) 
 { 
@@ -63,9 +74,9 @@ void WebSiteService::CountDownAndUpload(unsigned long totalkWhGenerated,unsigned
 
   if (this->minutecountdownvalue<=0) {
     this->resetCountDownTimer();
-    
+
     this->setIPAddress();
-    
+
     this->preparePacket(totalkWhGenerated,spotTotalPowerAC, dt) ;
 
     // send the packet - this also releases all stash buffers once done
@@ -81,4 +92,5 @@ void WebSiteService::CountDownAndUpload(unsigned long totalkWhGenerated,unsigned
     }
   }
 }//end function
+
 

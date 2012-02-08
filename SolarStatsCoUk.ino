@@ -18,9 +18,7 @@ NANODE SMA PV MONITOR
  All code is copyright Stuart Pittaway, (c)2012.
  */
 
-
 char solarstatswebsite[] PROGMEM = "www.solarstats.co.uk";
-
 
 int webserviceSolarStats::getTimerResetValue (){
   //Number of minutes between uploads
@@ -29,7 +27,7 @@ int webserviceSolarStats::getTimerResetValue (){
 
 
 bool webserviceSolarStats::dnsLookup() {
-  //Think the pvoutputwebsite should be moved into a function inside the base class then overridden from the child, can we return prog_char* ??
+  //Think the pvoutputwebsite should be moved into a function inside the base class then overridden from the child, can we return prog_
   return ether.dnsLookup( solarstatswebsite );
 }
 
@@ -41,54 +39,32 @@ void webserviceSolarStats::preparePacket(unsigned long totalkWhGenerated,unsigne
   // generate the header with payload - note that the stash size is used,
   // and that a "stash descriptor" is passed in as argument using "$H" 
 
-//http://forum.jeelabs.net/node/375
+  //http://forum.jeelabs.net/node/375
 
-  //Format of yyyy-MM-dd
-  char d[]={
-    '0','0','0','0','-','0','0','-','0','0',0      };
-  //Format of HHmm
-  char t[]={
-    '0','0','0','0',0      };
-
-  formatTwoDigits(t,hour(dt));
-  formatTwoDigits(t+2,minute(dt));
-
-  formatTwoDigits(d+5,month(dt));
-  formatTwoDigits(d+8,day(dt));
-
-  itoa(year(dt), d, 10);
-  d[4]='-';
-
-  char watthour[12];
-  ultoa(totalkWhGenerated,watthour,10);
   byte sd = stash.create(); 
-
-  //Perhaps use instead...
-  //ether.browseUrl(PSTR("/xyz.php"), "?search=Arduino", PSTR(HOSTNAME), &browserresult_callback);
-
-  stash.print(F("GET http://www.solarstats.co.uk/api/Update.ashx?apikey="));
-  //Would like to do... stash.print(solarstatswebsite);
-
-  stash.print(F("6AAEA7C448"));
-
-  stash.print(F("&apipassword=")); 
-  stash.print(F("8E4279FE0A"));
-
-  stash.print(F("&date="));
-  stash.print(d);
-  stash.print(F("&time="));
-  stash.print(t);
+  stash.print(F("date="));
+  //date is in YYYY-MM-DD format
+  stash.print(year(dt));
+  stash.print('-');
+  stashPrintTwoDigits(month(dt));
+  stash.print('-');
+  stashPrintTwoDigits(day(dt));
+  stash.print(F("&time=")); 
+  stashPrintTwoDigits(hour(dt));
+  stashPrintTwoDigits(minute(dt));
   stash.print(F("&watthour="));
-  stash.print(watthour);
-
-  stash.print(F(" HTTP/1.0\r\nHost: www.solarstats.co.uk\r\n"));
-  //stash.print(F("User-Agent: NanodeSMAPVMonitor\r\n"));
-  stash.print(F("Content-Length: 0 \r\n"));
-  stash.print(F("\r\n"));
+  stash.print(totalkWhGenerated);
   stash.save();
 
-  Stash::prepare(PSTR("$H"),sd);
+
+  Stash::prepare(PSTR("GET http://$F/api/Update.ashx?apikey=$F&apipassword=$F&$H HTTP/1.0" "\r\n"
+    "Host: $F" "\r\n"
+    "User-Agent: NanodeSMAPVMonitor" "\r\n"
+    "Content-Length: $D" "\r\n"
+    "\r\n"),
+  solarstatswebsite,PSTR(SOLARSTATSAPIKEY),PSTR(SOLARSTATSAPIPASSWORD),sd,solarstatswebsite, 0);  
 }
+
 
 
 

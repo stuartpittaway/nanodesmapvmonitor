@@ -19,8 +19,8 @@ NANODE SMA PV MONITOR
  */
 
 
-const int maxlevel1packetsize = 120;
-const int level1headerlength = 18;
+const byte maxlevel1packetsize = 120;
+const byte level1headerlength = 18;
 
 unsigned int packetlength=0;
 unsigned int cmdcode=0;
@@ -37,7 +37,7 @@ char invertername[15]={0};
 unsigned char packet_send_counter=0;
 unsigned char lastpacketindex=0;
 
-unsigned char level1packet[maxlevel1packetsize]={0};
+unsigned char level1packet[maxlevel1packetsize];
 
 bool escapenextbyte=false;
 

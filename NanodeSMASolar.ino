@@ -37,11 +37,11 @@
 
 
 #undef debugMsgln 
-//#define debugMsgln(s) (__extension__(  {Serial.println(F(s));}  ))
-#define debugMsgln(s) (__extension__(  {delay(0);}  ))
+#define debugMsgln(s) (__extension__(  {Serial.println(F(s));}  ))
+//#define debugMsgln(s) (__extension__(  {delay(0);}  ))
 #undef debugMsg
-//#define debugMsg(s) (__extension__(  {Serial.print(F(s));}  ))
-#define debugMsg(s) (__extension__(  { delay(0); }  ))
+#define debugMsg(s) (__extension__(  {Serial.print(F(s));}  ))
+//#define debugMsg(s) (__extension__(  { delay(0); }  ))
 
 
 byte Ethernet::buffer[650]; // tcp/ip send and receive buffer
@@ -56,41 +56,38 @@ Stash stash;  //Shared by WebService classes
 
 
 //Sure these arrays could be merged together if the common elements were stripped out
-prog_uchar PROGMEM smanet2packet1[5] ={   
+prog_uchar PROGMEM smanet2packet1[] ={   
   0x80, 0x00, 0x02, 0x00, 0x00};
-prog_uchar PROGMEM smanet2packet2[9]  ={  
+prog_uchar PROGMEM smanet2packet2[]  ={ 
   0x80, 0x0E, 0x01, 0xFD, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-prog_uchar PROGMEM smanet2packet3[13]={   
-  0x80, 0x0C, 0x04, 0xFD, 0xFF, 0x07, 0x00, 0x00, 0x00, 0x84, 0x03, 0x00, 0x00};
-//Assume SMA INVERTER PIN code is 0000
-prog_uchar PROGMEM smanet2packet4[8]  ={  
-  0x88, 0x88, 0x88, 0x88, 0x88, 0x88, 0x88, 0x88};
-prog_uchar PROGMEM SMANET2header[4] = {   
+prog_uchar PROGMEM SMANET2header[] = {  
   0xFF,0x03,0x60,0x65  };
-prog_uchar PROGMEM InverterCodeArray[6] = {    
+prog_uchar PROGMEM InverterCodeArray[] = {   
   0x5c, 0xaf, 0xf0, 0x1d, 0x50, 0x00 };  //SCAFFOLDS000  meaningless really!  This is our fake address on the SMA NETWORK
-prog_uchar PROGMEM fourzeros[4]= {   
-  0,0,0,0  };
-prog_uchar PROGMEM smanet2packet5[13]={   
+prog_uchar PROGMEM fourzeros[]= {
+  0,0,0,0};
+prog_uchar PROGMEM smanet2packet5[]={     
   0x80, 0x00, 0x02, 0x00, 0x58, 0x00, 0x1e, 0x82, 0x00, 0xFF, 0x1e, 0x82, 0x00};  //Inverter name
-prog_uchar PROGMEM smanet2packet6[13]={   
+prog_uchar PROGMEM smanet2packet6[]={     
   0x80, 0x00, 0x02, 0x00, 0x54, 0x00, 0x22, 0x26, 0x00, 0xFF, 0x22, 0x26, 0x00};
-prog_uchar PROGMEM smanet2acspotvalues[14]=                {  
+prog_uchar PROGMEM smanet2acspotvalues[]=  {  
   0x80, 0x00, 0x02, 0x00, 0x51, 0x00, 0x3f, 0x26, 0x00, 0xFF, 0x3f, 0x26, 0x00, 0x0e};
-prog_uchar PROGMEM smanet2totalyieldWh[14]=                {  
+prog_uchar PROGMEM smanet2totalyieldWh[]=  {  
   0x80, 0x00, 0x02, 0x00, 0x54, 0x00, 0x01, 0x26, 0x00, 0xFF, 0x01, 0x26, 0x00};
-prog_uchar PROGMEM smanet2packet0[4]= {    
+prog_uchar PROGMEM smanet2packet0[]= {  
   0x01,0x00,0x00,0x00};
-prog_uchar PROGMEM smanet2packet7[13]={   
-  0x83, 0x00, 0x02, 0x80, 0x53, 0x00, 0x00, 0x45, 0x00, 0xFF, 0xFF, 0x45, 0x00};
-prog_uchar PROGMEM smanet2packet99[4]= {  
+prog_uchar PROGMEM smanet2packet99[]= {  
   0x00,0x04,0x70,0x00};
+//prog_uchar PROGMEM smanet2packet7[]={   0x83, 0x00, 0x02, 0x80, 0x53, 0x00, 0x00, 0x45, 0x00, 0xFF, 0xFF, 0x45, 0x00};
 
-prog_uchar PROGMEM smanet2packet90[4]= {  
-  0xaa,0xaa,0xbb,0xbb}; //TIME TODAY IN UNIX FORMAT (although this is just random junk, inverter doesn't care!)
+prog_uchar PROGMEM smanet2packet_logon[]={ 
+  0x80, 0x0C, 0x04, 0xFD, 0xFF, 0x07, 0x00, 0x00, 0x00, 0x84, 0x03, 0x00, 0x00,0xaa,0xaa,0xbb,0xbb};
 
+
+//Password needs to be 12 bytes long, with zeros as trailing bytes
+//Assume SMA INVERTER PIN code is 0000
 unsigned char SMAInverterPasscode[]={
-  '0','0','0','0'};
+  '0','0','0','0',0,0,0,0,0,0,0,0};
 
 void setup() 
 { 
@@ -100,27 +97,27 @@ void setup()
   pinMode(RED_LED, OUTPUT);
   digitalWrite( RED_LED, HIGH);
 
-  HowMuchMemory();
+  //HowMuchMemory();
 
   BTStart();
 
   //Make sure you have the latest version of NanodeMAC which works on Arduino 1.0
   byte mymac[] = { 
-    0,0,0,0,0,0       };
+    0,0,0,0,0,0               };
   NanodeMAC mac( mymac );
   printMacAddress(mymac);
 
   debugMsgln("DHCP");
   if (ether.begin(sizeof Ethernet::buffer, mymac) == 0)
   { 
-    debugMsgln("Fail Ether chip"); 
+    debugMsgln("Fail chip"); 
     error(); 
   }
 
   if (ether.dhcpSetup()) {
-    ether.printIp("IP:", ether.myip);
-    ether.printIp("GW:", ether.gwip);
-    ether.printIp("DNS:", ether.dnsip);
+    //ether.printIp("IP:", ether.myip);
+    //ether.printIp("GW:", ether.gwip);
+    //ether.printIp("DNS:", ether.dnsip);
   } 
   else { 
     debugMsgln("DHCP fail"); 
@@ -157,7 +154,7 @@ void loop()
 
   webservicePVoutputOrg pvoutputorg; 
   pvoutputorg.begin();
-  
+
   webserviceemonCMS emoncms;
   emoncms.begin();
 
@@ -188,7 +185,6 @@ void loop()
       ether.packetLoop(ether.packetReceive());     
       delay(100);
     }
-    
 
     //Populate datetime and spotpowerac variables with latest values
     getInstantACPower();
@@ -196,8 +192,14 @@ void loop()
     //At this point the instant AC power reading could be sent over to an XBEE/RF module
     //to the Open Energy Monitor GLCD display
 
-    digitalClockDisplay( now() );Serial.println("");
-   
+    if (timeStatus()!=timeSet) {
+      //Every hour call getDailyYield to update our local clock to avoid drift...
+      getDailyYield();   
+    }
+
+    digitalClockDisplay( now() );
+    Serial.println("");
+
     if (now()>=checktime) 
     {
       //This routine is called as soon as possible after the clock ticks past the minute
@@ -206,20 +208,20 @@ void loop()
 
       getTotalPowerGeneration();
 
+
       //Upload value to various websites/services, depending upon frequency
-      emoncms.CountDownAndUpload(currentvalue,spotpowerac,datetime);
+
 
       solarstats.CountDownAndUpload(currentvalue,spotpowerac,datetime);     
+      pvoutputorg.CountDownAndUpload(currentvalue,spotpowerac,datetime);
+
+      //emoncms.CountDownAndUpload(currentvalue,spotpowerac,datetime);
 
       pachube.CountDownAndUpload(currentvalue,spotpowerac,datetime);
 
-      pvoutputorg.CountDownAndUpload(currentvalue,spotpowerac,datetime);
 
 
-      if (timeStatus()!=timeSet) {
-        //Every hour call getDailyYield to update our local clock to avoid drift...
-        getDailyYield();   
-      }
+
 
       //finally, set waiting time...
       checktime=nextMinute(now());
@@ -228,18 +230,39 @@ void loop()
         //Inverter output hasnt changed for an hour, so put Nanode to sleep till the morning
         debugMsgln("Bed time");
 
-        //Workout what time sunrise is and sleep till then...
-        //longitude, latitude (london uk=-0.126236,51.500152)
-        checktime=ComputeSun(mylongitude,mylatitude,checktime,true);
-        //We want to wake up at least 15 minutes before sunrise, just in case...
-        checktime-=15*60;
-        
-        //Reset datetime to a future date so we don't immediately go back to sleep 
-        //when we wake up!
-        datetime=checktime+80000;        
+        //Get midnight on the day of last solar generation
+        tmElements_t tm;     
+        tm.Year = year(datetime)-1970;
+        tm.Month = month(datetime);
+        tm.Day = day(datetime);
+        tm.Hour = 23;
+        tm.Minute = 59;
+        tm.Second = 59;
+        time_t midnight=makeTime(tm);
+
+        //Move to midnight
+        debugMsg("Midnight ");
+        digitalClockDisplay( midnight );
+        debugMsgln("");
+
+        if (now() < midnight) {
+          //Time to calculate SLEEP time, we only do this if its BEFORE midnight
+          //on the day of solar generation, otherwise we might wake up and go back to sleep immediately!
+
+          //Workout what time sunrise is and sleep till then...
+          //longitude, latitude (london uk=-0.126236,51.500152)
+          unsigned int minutespastmidnight=ComputeSun(mylongitude,mylatitude,datetime,true);
+
+          //We want to wake up at least 15 minutes before sunrise, just in case...
+          checktime=midnight + minutespastmidnight - 15*60;
+
+        }
       }
 
-      //debugMsg("Wait for ");digitalClockDisplay( checktime );debugMsgln("");
+      debugMsg("Wait for ");
+      digitalClockDisplay( checktime );
+      debugMsgln("");
+
     }
   }//end while
 } 
@@ -343,17 +366,18 @@ void logonSMAInverter() {
   do {
     writePacketHeader(level1packet,0x01,0x00,sixff);
     writeSMANET2PlusPacket(level1packet,0x0e, 0xa0, packet_send_counter, 0x00, 0x01, 0x01);
-    writeSMANET2ArrayFromProgmem(level1packet,smanet2packet3,13);
-
-    writeSMANET2ArrayFromProgmem(level1packet,smanet2packet90,4);
+    writeSMANET2ArrayFromProgmem(level1packet,smanet2packet_logon,sizeof(smanet2packet_logon));
+    //writeSMANET2ArrayFromProgmem(level1packet,smanet2packet90,4);
     writeSMANET2ArrayFromProgmem(level1packet,fourzeros,4);
 
     //INVERTER PASSWORD - only 4 digits, although it appears packet can hold longer
-    writeSMANET2SingleByte(level1packet,(SMAInverterPasscode[0] + 0x88) % 0xff);
-    writeSMANET2SingleByte(level1packet,(SMAInverterPasscode[1] + 0x88) % 0xff);
-    writeSMANET2SingleByte(level1packet,(SMAInverterPasscode[2] + 0x88) % 0xff);
-    writeSMANET2SingleByte(level1packet,(SMAInverterPasscode[3] + 0x88) % 0xff);
-    writeSMANET2ArrayFromProgmem(level1packet,smanet2packet4,8);
+    for(int passcodeloop=0;passcodeloop<sizeof(SMAInverterPasscode);passcodeloop++) {
+      writeSMANET2SingleByte(level1packet,(SMAInverterPasscode[passcodeloop] + 0x88) % 0xff);
+    }
+    //writeSMANET2SingleByte(level1packet,(SMAInverterPasscode[1] + 0x88) % 0xff);
+    //writeSMANET2SingleByte(level1packet,(SMAInverterPasscode[2] + 0x88) % 0xff);
+    //writeSMANET2SingleByte(level1packet,(SMAInverterPasscode[3] + 0x88) % 0xff);
+    //writeSMANET2ArrayFromProgmem(level1packet,smanet2packet4,8);
     writeSMANET2PlusPacketTrailer(level1packet);
     writePacketLength(level1packet);
     sendPacket(level1packet);
@@ -553,5 +577,9 @@ void getDCValues() {
  }
  }
  */
+
+
+
+
 
 

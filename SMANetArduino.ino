@@ -32,10 +32,10 @@ void readLevel1PacketFromBluetoothStream(int index) {
     delay(1);  
   }
 
-  unsigned char len1=getByte();
-  unsigned char len2=getByte();
-  unsigned char packetchecksum=getByte();
-  unsigned char checksumvalidate = 0x7e ^ len1 ^ len2;
+  byte len1=getByte();
+  byte len2=getByte();
+  byte packetchecksum=getByte();
+  byte checksumvalidate = 0x7e ^ len1 ^ len2;
 
   if ((0x7e ^ len1 ^ len2)==packetchecksum) {
     //Valid header packet...

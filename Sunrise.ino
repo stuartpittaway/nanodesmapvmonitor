@@ -1,4 +1,4 @@
-static time_t ComputeSun(float longitude,float latitude,time_t when, bool rs) {
+static unsigned int  ComputeSun(float longitude,float latitude,time_t when, bool rs) {
 //Borrowed from TimeLord library http://swfltek.com/arduino/timelord.html
 //rs=true for sunrise, false=sunset
 
@@ -36,25 +36,11 @@ static time_t ComputeSun(float longitude,float latitude,time_t when, bool rs) {
   if(rs==false) ha=-ha;
 
   // compute minutes from midnight
-  unsigned int seconds=60*(720+4*(lon-ha)*57.295779513082322-eqt);
+  return 60*(720+4*(lon-ha)*57.295779513082322-eqt);
 
   // convert from UTC back to our timezone
   //minutes+= timezone;
-  
-  tmElements_t tm;
-
-  tm.Year = year(when)-1970;
-  tm.Month = month(when);
-  tm.Day = day(when);
-  tm.Hour = 0;
-  tm.Minute = 0;
-  tm.Second = 0;
-
-  time_t midnight=makeTime(tm);
-
-  //Move to tomorrow and add on the minutes till sunrise (as seconds)
-  midnight+=86400 +seconds;
  
-  return midnight;
+  //return seconds;
 }
 

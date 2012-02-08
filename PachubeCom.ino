@@ -27,7 +27,6 @@ int webservicePachube::getTimerResetValue (){
 
 
 bool webservicePachube::dnsLookup() {
-  //Think the pvoutputwebsite should be moved into a function inside the base class then overridden from the child, can we return prog_char* ??
   return ether.dnsLookup( pachubewebsite );
 }
 
@@ -58,7 +57,7 @@ void webservicePachube::preparePacket(unsigned long totalkWhGenerated,unsigned l
   Stash::prepare(PSTR("PUT http://$F/v2/feeds/$F.json HTTP/1.0" "\r\n"
     "Host: $F" "\r\n"
     "X-PachubeApiKey: $F" "\r\n"
-    //"User-Agent: NanodeSMAPVMonitor" "\r\n"
+    "User-Agent: NanodeSMAPVMonitor" "\r\n"
     "Content-Length: $D" "\r\n"
     "\r\n"
     "$H"),

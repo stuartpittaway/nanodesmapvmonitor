@@ -20,7 +20,6 @@ NANODE SMA PV MONITOR
 
 char pvoutputwebsite[] PROGMEM = "pvoutput.org";
 
-
 int webservicePVoutputOrg::getTimerResetValue (){
   //Number of minutes between uploads
   return 5;
@@ -33,28 +32,17 @@ bool webservicePVoutputOrg::dnsLookup() {
 
 void webservicePVoutputOrg::preparePacket(unsigned long totalkWhGenerated,unsigned long spotTotalPowerAC, time_t dt) 
 { 
-  debugMsg("Uploading to ");
-  Serial.println(pvoutputwebsite);
-
-  //Format of yyyymmdd
-  char d[]={
-    '0','0','0','0','0','0','0','0',0              };
-  //Format of HHmm
-  char t[]={
-    '0','0',':','0','0',0              };
-
-  formatTwoDigits(t,hour(dt));
-  formatTwoDigits(t+3,minute(dt));
-
-  itoa(year(dt), d, 10);
-  formatTwoDigits(d+4,month(dt));
-  formatTwoDigits(d+6,day(dt));
+  debugMsg("Uploading to ");  Serial.println(pvoutputwebsite);
 
   byte sd = stash.create(); 
   stash.print(F("d="));
-  stash.print(d);
+  stash.print(year(dt));
+  stashPrintTwoDigits(month(dt));
+  stashPrintTwoDigits(day(dt));
   stash.print(F("&t="));
-  stash.print(t);
+  stashPrintTwoDigits(hour(dt));
+  stash.print(':');
+  stashPrintTwoDigits(minute(dt));
 
   //PV Generation
   stash.print(F("&v1="));
@@ -63,6 +51,7 @@ void webservicePVoutputOrg::preparePacket(unsigned long totalkWhGenerated,unsign
   //Spot power
   stash.print(F("&v2="));
   stash.print(spotTotalPowerAC);
+
   stash.print(F("&c1=1"));
 
   stash.save();

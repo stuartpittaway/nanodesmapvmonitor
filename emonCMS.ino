@@ -32,7 +32,7 @@ bool webserviceemonCMS::dnsLookup() {
   return ether.dnsLookup( emoncmswebsite );
 }
 
-void webserviceemonCMS::preparePacket(unsigned long totalkWhGenerated,unsigned long spotTotalPowerAC, time_t dt) 
+void webserviceemonCMS::preparePacket(unsigned long totalkWhGenerated,unsigned long spotTotalPowerAC,unsigned long spotTotalPowerDC, time_t dt) 
 { 
   byte sd = stash.create(); 
   stash.print(F("{\"solarkw\":\""));

@@ -30,7 +30,7 @@ bool webservicePachube::dnsLookup() {
   return ether.dnsLookup( pachubewebsite );
 }
 
-void webservicePachube::preparePacket(unsigned long totalkWhGenerated,unsigned long spotTotalPowerAC, time_t dt) 
+void webservicePachube::preparePacket(unsigned long totalkWhGenerated,unsigned long spotTotalPowerAC,unsigned long spotTotalPowerDC, time_t dt) 
 { 
   byte sd = stash.create(); 
   stash.print(F("{\"version\":\"1.0.0\",\"datastreams\":["));
@@ -42,14 +42,20 @@ void webservicePachube::preparePacket(unsigned long totalkWhGenerated,unsigned l
   stash.print(F(",{\"id\":\"4\",\"current_value\":\""));
   stash.print(spotTotalPowerAC);
   stash.print(F("\"}"));
+
   //Uptime in whole seconds
   stash.print(F(",{\"id\":\"2\",\"current_value\":\""));
   stash.print(millis()/1000);
   stash.print(F("\"}"));
 
+  //Uptime in whole seconds
+  stash.print(F(",{\"id\":\"5\",\"current_value\":\""));
+  stash.print(spotTotalPowerDC);
+  stash.print(F("\"}"));
+
   //Nanode RAM Memory Free
-  stash.print(F(",{\"id\":\"3\",\"current_value\":\""));
-  stash.print(freeMemory());
+  stash.print(F(",{\"id\":\"StashFree\",\"current_value\":\""));
+  stash.print(Stash::freeCount());
   stash.print(F("\"}"));
   stash.print(F("]}"));
   stash.save();

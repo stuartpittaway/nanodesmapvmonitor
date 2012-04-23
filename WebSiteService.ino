@@ -68,7 +68,7 @@ void WebSiteService::formatTwoDigits(char* strOut, int num)
  }
  */
 
-void WebSiteService::CountDownAndUpload(unsigned long totalkWhGenerated,unsigned long spotTotalPowerAC, time_t dt) 
+void WebSiteService::CountDownAndUpload(unsigned long totalkWhGenerated,unsigned long spotTotalPowerAC,unsigned long spotTotalPowerDC, time_t dt) 
 { 
   CountDown();
 
@@ -77,7 +77,7 @@ void WebSiteService::CountDownAndUpload(unsigned long totalkWhGenerated,unsigned
 
     this->setIPAddress();
 
-    this->preparePacket(totalkWhGenerated,spotTotalPowerAC, dt) ;
+    this->preparePacket(totalkWhGenerated,spotTotalPowerAC,spotTotalPowerDC, dt) ;
 
     // send the packet - this also releases all stash buffers once done
     ether.tcpSend();

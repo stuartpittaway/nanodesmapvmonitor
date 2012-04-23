@@ -30,7 +30,7 @@ bool webservicePVoutputOrg::dnsLookup() {
   return ether.dnsLookup( pvoutputwebsite );
 }
 
-void webservicePVoutputOrg::preparePacket(unsigned long totalkWhGenerated,unsigned long spotTotalPowerAC, time_t dt) 
+void webservicePVoutputOrg::preparePacket(unsigned long totalkWhGenerated,unsigned long spotTotalPowerAC,unsigned long spotTotalPowerDC, time_t dt) 
 { 
   debugMsg("Uploading to ");  Serial.println(pvoutputwebsite);
 

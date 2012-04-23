@@ -31,7 +31,7 @@ bool webserviceSolarStats::dnsLookup() {
   return ether.dnsLookup( solarstatswebsite );
 }
 
-void webserviceSolarStats::preparePacket(unsigned long totalkWhGenerated,unsigned long spotTotalPowerAC, time_t dt) 
+void webserviceSolarStats::preparePacket(unsigned long totalkWhGenerated,unsigned long spotTotalPowerAC,unsigned long spotTotalPowerDC, time_t dt) 
 { 
   Serial.print(F("Uploading to "));
   Serial.println(solarstatswebsite);

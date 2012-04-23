@@ -27,7 +27,7 @@ private:
 public:
   //virtual prog_char* getWebAddress();
   virtual int getTimerResetValue();
-  virtual void preparePacket(unsigned long totalkWhGenerated,unsigned long spotTotalPowerAC, time_t dt);
+  virtual void preparePacket(unsigned long totalkWhGenerated,unsigned long spotTotalPowerAC,unsigned long spotTotalPowerDC, time_t dt);
   virtual bool dnsLookup();
 
   //void formatTwoDigits(char* strOut, int num);
@@ -35,7 +35,7 @@ public:
   
   void CountDown ();
   void lookupDNSHostIP() ;
-  void CountDownAndUpload(unsigned long totalkWhGenerated,unsigned long spotTotalPowerAC, time_t dt) ;
+  void CountDownAndUpload(unsigned long totalkWhGenerated,unsigned long spotTotalPowerAC,unsigned long spotTotalPowerDC, time_t dt) ;
   void resetCountDownTimer();
   void setIPAddress();
   void begin();
@@ -52,7 +52,7 @@ public WebSiteService
 {
 public:
   bool dnsLookup();
-  void preparePacket(unsigned long totalkWhGenerated,unsigned long spotTotalPowerAC, time_t dt) ;
+  void preparePacket(unsigned long totalkWhGenerated,unsigned long spotTotalPowerAC,unsigned long spotTotalPowerDC, time_t dt);
   int getTimerResetValue();
 };
 
@@ -64,7 +64,7 @@ public WebSiteService
 
   public:
   bool dnsLookup();
-  void preparePacket(unsigned long totalkWhGenerated,unsigned long spotTotalPowerAC, time_t dt) ;
+  void preparePacket(unsigned long totalkWhGenerated,unsigned long spotTotalPowerAC,unsigned long spotTotalPowerDC, time_t dt);
   int getTimerResetValue();
 };
 
@@ -75,7 +75,7 @@ public WebSiteService
 {
 public:
   bool dnsLookup();
-  void preparePacket(unsigned long totalkWhGenerated,unsigned long spotTotalPowerAC, time_t dt) ;
+  void preparePacket(unsigned long totalkWhGenerated,unsigned long spotTotalPowerAC,unsigned long spotTotalPowerDC, time_t dt);
   int getTimerResetValue();
 };
 
@@ -86,7 +86,7 @@ public WebSiteService
 {
 public:
   bool dnsLookup();
-  void preparePacket(unsigned long totalkWhGenerated,unsigned long spotTotalPowerAC, time_t dt) ;
+  void preparePacket(unsigned long totalkWhGenerated,unsigned long spotTotalPowerAC,unsigned long spotTotalPowerDC, time_t dt);
   int getTimerResetValue();
 };
 

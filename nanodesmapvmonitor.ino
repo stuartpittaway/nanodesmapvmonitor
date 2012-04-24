@@ -497,8 +497,8 @@ void getInstantDCPower() {
     //0x451f=DC Voltage  /100
     //0x4521=DC Current  /1000
 
-    if (valuetype==0x451f) volts=value/100;
-    if (valuetype==0x4521) amps=value/1000;
+    if (valuetype==0x451f) volts=(float)value/(float)100;
+    if (valuetype==0x4521) amps=(float)value/(float)1000;
 
     //Serial.print(valuetype,HEX);
     //Serial.print("=");

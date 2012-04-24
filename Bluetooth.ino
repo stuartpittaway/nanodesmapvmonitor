@@ -25,9 +25,10 @@ NANODE SMA PV MONITOR
 SoftwareSerial blueToothSerial(RxD,TxD);
 
 void BTStart() {
+
   if (!readArrayFromEEPROM(myBTAddress,6,ADDRESS_MY_BTADDRESS) || !readArrayFromEEPROM(smaBTInverterAddressArray,6,ADDRESS_SMAINVERTER_BTADDRESS)) 
   {
-    debugMsgln("Checksum failed - pairing");
+    debugMsgln("Chksum fail-pair");
     BTInitStartup(true);    
   } 
   else BTInitStartup(false);
@@ -35,6 +36,7 @@ void BTStart() {
   //Start normal connection to BT chip, it will auto-connect as master to the SMA inverter (slave)
   blueToothSerial.begin(9600);
   
+  debugMsgln("BT Rdy");  //Bluetooth ready
 }
 
 void sendPacket(unsigned char *btbuffer) {
@@ -46,7 +48,7 @@ void sendPacket(unsigned char *btbuffer) {
 
 void quickblink() {
   digitalWrite( RED_LED, LOW);
-  delay(100);
+  delay(30);
   digitalWrite( RED_LED, HIGH);
 }
 
@@ -66,7 +68,7 @@ void BTInitStartup(bool ForcePair) {
 
 void BTSwitchOn() {
   analogWrite(BLUETOOTH_POWER_PIN, 255);  //Ensure BT chip is on
-  delay(1500);  //Give chip time to warm up and enter command mode
+  delay(1800);  //Give chip time to warm up and enter command mode
 }
 
 void BTSwitchOff() {
@@ -93,7 +95,7 @@ void BTScanForSMAInverterToPairWith()
   char smabtinverteraddress[14];
   unsigned char tempaddress[6];  //BT address
 
-  debugMsgln("Config Bluetooth");
+  debugMsgln("Config BT");
 
   digitalWrite(BT_KEY, HIGH);    // Turn BT chip into command mode (HC05)
   delay(200);

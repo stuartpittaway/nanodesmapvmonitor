@@ -18,22 +18,27 @@ NANODE SMA PV MONITOR
  All code is copyright Stuart Pittaway, (c)2012.
  */
 
-
-const byte maxlevel1packetsize = 120;
-const byte level1headerlength = 18;
+#define maxlevel1packetsize 120
+#define level1headerlength 18
+//const byte maxlevel1packetsize = 120;
+//const byte level1headerlength = 18;
 
 unsigned int packetlength=0;
 unsigned int cmdcode=0;
 
+//Should be moved into PROGMEM
 unsigned char sixzeros[6]={ 0x00,0x00,0x00,0x00,0x00,0x00};
+//Should be moved into PROGMEM
 unsigned char sixff[6]={ 0xff,0xff,0xff,0xff,0xff,0xff};
+
 unsigned int packetposition=0;
+
 unsigned int FCSChecksum=0xffff;
 
 unsigned char Level1SrcAdd[6];
 unsigned char Level1DestAdd[6];
 
-char invertername[15]={0};
+//char invertername[15]={0};
 unsigned char packet_send_counter=0;
 unsigned char lastpacketindex=0;
 

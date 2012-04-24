@@ -37,7 +37,7 @@ static int freeMemory() {
 
 
 static void HowMuchMemory() {
-  Serial.print(F("mem="));
+  Serial.print(F("m="));
   Serial.println(freeMemory());
 }
 

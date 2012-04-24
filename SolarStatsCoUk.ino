@@ -33,8 +33,8 @@ bool webserviceSolarStats::dnsLookup() {
 
 void webserviceSolarStats::preparePacket(unsigned long totalkWhGenerated,unsigned long spotTotalPowerAC,unsigned long spotTotalPowerDC, time_t dt) 
 { 
-  Serial.print(F("Uploading to "));
-  Serial.println(solarstatswebsite);
+//Serial.print(F("Uploading to "));
+  //Serial.println(solarstatswebsite);
 
   // generate the header with payload - note that the stash size is used,
   // and that a "stash descriptor" is passed in as argument using "$H" 

@@ -33,7 +33,7 @@ void WebSiteService::begin() {
 }
 
 void WebSiteService::lookupDNSHostIP() {
-  debugMsgln("DNS lookup"); 
+  debugMsgln("DNS lkup"); 
   if (this->dnsLookup())
   {
     ether.copyIp(this->hostip,ether.hisip);
@@ -60,14 +60,6 @@ void WebSiteService::stashPrintTwoDigits(byte num)
   stash.write('0' + (num % 10));
 }
 
-/*
-void WebSiteService::formatTwoDigits(char* strOut, int num)
- {
- strOut[0] = '0' + (num / 10);
- strOut[1] = '0' + (num % 10);
- }
- */
-
 void WebSiteService::CountDownAndUpload(unsigned long totalkWhGenerated,unsigned long spotTotalPowerAC,unsigned long spotTotalPowerDC, time_t dt) 
 { 
   CountDown();
@@ -85,9 +77,9 @@ void WebSiteService::CountDownAndUpload(unsigned long totalkWhGenerated,unsigned
     //Wait for a bit to process any possible replies, ideally we
     //would like to wait here for a successful HTTP 200 message
     //or timeout/error condition
-    for(int i=0; i<250; i++)
+    for(int i=0; i<150; i++)
     {
-      delay(5);
+      delay(10);
       ether.packetLoop(ether.packetReceive());
     }
   }

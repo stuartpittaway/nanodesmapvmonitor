@@ -81,11 +81,11 @@ void readLevel1PacketFromBluetoothStream(int index) {
         packetlength=index+level1headerlength;
         packetposition=index;
       } 
-      else Serial.println(F("P wrng snder"));
+      else debugMsgln("P wrng snder");
     } 
-    else Serial.println(F("P wrng dest"));
+    else debugMsgln("P wrng dest");
   } 
-  else Serial.println(F("Inv hdr"));
+  else debugMsgln("Inv hdr");
 }
 
 void prepareToReceive(){
@@ -106,14 +106,18 @@ bool containsLevel2Packet() {
 
 
 void waitForPacket(unsigned int cmdcodetowait) {
+  //debugMsg("waitForPacket=0x");  Serial.print(cmdcodetowait,HEX);
+  
   prepareToReceive();
 
   while (cmdcode!=cmdcodetowait) {
     readLevel1PacketFromBluetoothStream(0);
   } 
+  //debugMsgln(" done");  
 }
 
 void waitForMultiPacket(unsigned int cmdcodetowait) {
+  //debugMsg("waitForMultiPacket=0x");  Serial.print(cmdcodetowait,HEX);
   prepareToReceive();
 
   while (cmdcode!=cmdcodetowait) {
@@ -129,6 +133,7 @@ void writeSMANET2Long(unsigned char *btbuffer,unsigned long v) {
   writeSMANET2SingleByte(btbuffer,(unsigned char)((v >> 24) & 0xFF)) ;
 }
 
+/*
 void displaySpotValues(int gap) {
   unsigned long value = 0;
   unsigned int valuetype=0;
@@ -151,11 +156,10 @@ void displaySpotValues(int gap) {
     memcpy(&datetime,&level1packet[i+4],4);
     digitalClockDisplay(datetime);
 
-    Serial.print("=");
-    Serial.println(value);
+    Serial.print("=");Serial.println(value);
   }
-
 }
+*/
 
 void writeSMANET2SingleByte(unsigned char *btbuffer, unsigned char v) {
   //Keep a rolling checksum over the payload
@@ -170,14 +174,16 @@ void writeSMANET2SingleByte(unsigned char *btbuffer, unsigned char v) {
   }
 }
 
-void writeSMANET2Array(unsigned char *btbuffer, unsigned char bytes[],int loopcount) {
+void writeSMANET2Array(unsigned char *btbuffer, unsigned char bytes[],byte loopcount) {
   //Escape the packet if needed....
   for(int i=0;i<loopcount;i++) {
     writeSMANET2SingleByte(btbuffer,bytes[i]);
   }//end for
 }
 
-void writeSMANET2ArrayFromProgmem(unsigned char *btbuffer,prog_uchar ProgMemArray[],int loopcount) {
+void writeSMANET2ArrayFromProgmem(unsigned char *btbuffer,prog_uchar ProgMemArray[],byte loopcount) {
+    //debugMsg("writeSMANET2ArrayFromProgmem=");
+    //Serial.println(loopcount);
   //Escape the packet if needed....
   for(int i=0;i<loopcount;i++) {
     writeSMANET2SingleByte(btbuffer,pgm_read_byte_near(ProgMemArray + i));
@@ -229,6 +235,13 @@ void writeSMANET2PlusPacketTrailer(unsigned char *btbuffer){
   btbuffer[packetposition++]=0x7e;  //Trailing byte
 
     //Serial.print("Send Checksum=");Serial.println(FCSChecksum,HEX);
+}
+
+void writePacketHeader(unsigned char *btbuffer) {  
+  writePacketHeader(btbuffer,0x01,0x00,smaBTInverterAddressArray); 
+}
+void writePacketHeader(unsigned char *btbuffer,unsigned char *destaddress) {  
+  writePacketHeader(btbuffer,0x01,0x00,destaddress); 
 }
 
 void writePacketHeader(unsigned char *btbuffer,unsigned char cmd1,unsigned char cmd2, unsigned char *destaddress) {
@@ -376,6 +389,7 @@ bool validateChecksum(){
   }
 }
 
+/*
 void InquireBlueToothSignalStrength() {
   writePacketHeader(level1packet,0x03,0x00,smaBTInverterAddressArray);
   //unsigned char a[2]= {0x05,0x00};
@@ -392,7 +406,7 @@ void InquireBlueToothSignalStrength() {
   Serial.print(bluetoothSignalStrength);
   Serial.println("%");
 }
-
+*/
 
 
 bool ValidateSenderAddress() {

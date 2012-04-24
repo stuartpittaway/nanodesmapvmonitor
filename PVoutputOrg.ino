@@ -32,7 +32,7 @@ bool webservicePVoutputOrg::dnsLookup() {
 
 void webservicePVoutputOrg::preparePacket(unsigned long totalkWhGenerated,unsigned long spotTotalPowerAC,unsigned long spotTotalPowerDC, time_t dt) 
 { 
-  debugMsg("Uploading to ");  Serial.println(pvoutputwebsite);
+  //debugMsg("Upload to ");  Serial.println(pvoutputwebsite);
 
   byte sd = stash.create(); 
   stash.print(F("d="));

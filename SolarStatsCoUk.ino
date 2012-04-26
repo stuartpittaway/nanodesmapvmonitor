@@ -59,7 +59,7 @@ void webserviceSolarStats::preparePacket(unsigned long totalkWhGenerated,unsigne
 
   Stash::prepare(PSTR("GET http://$F/api/Update.ashx?apikey=$F&apipassword=$F&$H HTTP/1.0" "\r\n"
     "Host: $F" "\r\n"
-    "User-Agent: NanodeSMAPVMonitor" "\r\n"
+    //"User-Agent: NanodeSMAPVMonitor" "\r\n"
     "Content-Length: $D" "\r\n"
     "\r\n"),
   solarstatswebsite,PSTR(SOLARSTATSAPIKEY),PSTR(SOLARSTATSAPIPASSWORD),sd,solarstatswebsite, 0);  

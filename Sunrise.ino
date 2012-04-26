@@ -2,8 +2,6 @@ static unsigned int  ComputeSun(float longitude,float latitude,time_t when, bool
 //Borrowed from TimeLord library http://swfltek.com/arduino/timelord.html
 //rs=true for sunrise, false=sunset
 
-  //digitalClockDisplay(when);  Serial.println("");
-
   uint8_t a;
 
   float lon=-longitude/57.295779513082322;
@@ -37,10 +35,5 @@ static unsigned int  ComputeSun(float longitude,float latitude,time_t when, bool
 
   // compute minutes from midnight
   return 60*(720+4*(lon-ha)*57.295779513082322-eqt);
-
-  // convert from UTC back to our timezone
-  //minutes+= timezone;
- 
-  //return seconds;
 }
 

@@ -36,6 +36,19 @@
 #include "APIKey.h"
 
 
+//BST Start and end dates - this needs moving into some sort of PROGMEM array for the years or calculated based on the BST logic see 
+//http://www.time.org.uk/bstgmtcodepage1.aspx
+static time_t SummerStart=1332637200;  //Sun, 25 Mar 2012 01:00:00 GMT
+static time_t SummerEnd=1351386000;  //Sun, 28 Oct 2012 01:00:00 GMT
+
+//SMA inverter timezone (note inverter appears ignores summer time saving internally)
+//Need to determine what happens when its a NEGATIVE time zone !
+//Number of seconds for timezone 
+//    0=UTC (London)
+//19800=5.5hours Chennai, Kolkata
+//36000=Brisbane (UTC+10hrs)
+#define timeZoneOffset 0*60*60
+
 #undef debugMsgln 
 #define debugMsgln(s) (__extension__(  {Serial.println(F(s));}  ))
 //#define debugMsgln(s) (__extension__(  {__asm__("nop\n\t"); }  ))
@@ -45,7 +58,7 @@
 //#define debugMsg(s) (__extension__(  { __asm__("nop\n\t");  }  ))
 
 //Do we switch off upload to sites when its dark?
-//#define allowsleep
+#define allowsleep
 
 byte Ethernet::buffer[650]; // tcp/ip send and receive buffer
 
@@ -56,10 +69,14 @@ static unsigned long spotpowerac=0;
 static unsigned long spotpowerdc=0;
 static time_t datetime=0;
 
+static uint8_t ntpMyPort = 123;
+char sntpserver[] PROGMEM = "3.pool.ntp.org";
+const unsigned long seventy_years = 2208988800UL;
+
 Stash stash;  //Shared by WebService classes
 
-prog_uchar PROGMEM smanet2packetx80x00x02x00[] ={0x80, 0x00, 0x02, 0x00};
-
+prog_uchar PROGMEM smanet2packetx80x00x02x00[] ={
+  0x80, 0x00, 0x02, 0x00};
 prog_uchar PROGMEM smanet2packet2[]  ={ 
   0x80, 0x0E, 0x01, 0xFD, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 prog_uchar PROGMEM SMANET2header[] = {  
@@ -70,10 +87,13 @@ prog_uchar PROGMEM fourzeros[]= {
   0,0,0,0};
 prog_uchar PROGMEM smanet2packet6[]={      
   0x54, 0x00, 0x22, 0x26, 0x00, 0xFF, 0x22, 0x26, 0x00};
-
+prog_uchar PROGMEM smanet2packet99[]= {
+  0x00,0x04,0x70,0x00};
+prog_uchar PROGMEM smanet2packet0x01000000[]=  {
+  0x01,0x00,0x00,0x00};
 
 //Password needs to be 12 bytes long, with zeros as trailing bytes (Assume SMA INVERTER PIN code is 0000)
-unsigned char SMAInverterPasscode[]={
+prog_uchar PROGMEM SMAInverterPasscode[]={
   '0','0','0','0',0,0,0,0,0,0,0,0};
 
 void setup() 
@@ -87,7 +107,7 @@ void setup()
 
   //Make sure you have the latest version of NanodeMAC which works on Arduino 1.0
   byte mymac[] = { 
-    0,0,0,0,0,0                             };
+    0,0,0,0,0,0                                                 };
   NanodeMAC mac( mymac );
   //printMacAddress(mymac);
 
@@ -102,6 +122,10 @@ void setup()
     ether.printIp("IP:", ether.myip);
     //ether.printIp("GW:", ether.gwip);
     //ether.printIp("DNS:", ether.dnsip);
+
+    while (ether.clientWaitingGw()) {
+      ether.packetLoop(ether.packetReceive());
+    }
   } 
   else { 
     //debugMsgln("DHCP fail"); 
@@ -109,19 +133,17 @@ void setup()
   }
   //debugMsgln("Done");
 
-  HowMuchMemory();
+  //HowMuchMemory();
 
 
   //  es.ES_enc28j60PowerDown();
   //  es.ES_enc28j60PowerUp();
-  
-  
 } 
 
 
 void loop() 
 { 
-  debugMsgln("loop");
+  //debugMsgln("loop");
 
   //DNS lookup is done here otherwise the Serial buffer gets overflowed by the inverter trying to send broadcast messages out
   webservicePachube pachube;
@@ -133,7 +155,13 @@ void loop()
   webservicePVoutputOrg pvoutputorg; 
   pvoutputorg.begin();
 
-  digitalWrite( RED_LED, HIGH);
+  //  webserviceemonCMS emoncms;
+  //  emoncms.begin();
+
+  setSyncInterval(3600*2);  //2 hours
+  setSyncProvider(setTimePeriodically);  //This also fires off a refresh of the time immediately
+
+    digitalWrite( RED_LED, HIGH);
 
   BTStart();
 
@@ -144,24 +172,15 @@ void loop()
 
   logonSMAInverter();
 
-  setSyncInterval(3600);  //1 hour
-  setSyncProvider(setTimePeriodically);
+  checkIfNeedToSetInverterTime();
 
-  //  webserviceemonCMS emoncms;
-  //  emoncms.begin();
 
-  //We dont actually use the value this returns, but we can set the clock from its reply
-  getDailyYield();
 
   //getInverterName();
   //HistoricData();
 
   //Default loop
-  //debugMsgln("*LOOP*");
-
   time_t checktime=nextMinute(now());  //Store current time to compare against
-
-  //bool sleeping=false;
 
   while (1) {
     //debugMsgln("Main loop");
@@ -170,12 +189,13 @@ void loop()
 
     // DHCP expiration is a bit brutal, because all other ethernet activity and
     // incoming packets will be ignored until a new lease has been acquired
-    if (ether.dhcpExpired() && !ether.dhcpSetup())
-    {
-      //debugMsgln("DHCP fail"); 
-      error(); 
+    if (ether.dhcpExpired()){
+      if (!ether.dhcpSetup())
+      {
+        //debugMsgln("DHCP fail"); 
+        error(); 
+      }
     }
-
 
     //Populate datetime and spotpowerac variables with latest values
     //getInstantDCPower();
@@ -184,29 +204,21 @@ void loop()
     //At this point the instant AC power reading could be sent over to an XBEE/RF module
     //to the Open Energy Monitor GLCD display
 
-    if (timeStatus()!=timeSet) {
-      //Every hour call getDailyYield to update our local clock to avoid drift...
-      getDailyYield();   
-    }
-
-    digitalClockDisplay( now() );
-    debugMsgln("");
+    //digitalClockDisplay(now());
+    //debugMsgln("");
 
     if (now()>=checktime) 
     {
-      //debugMsgln("Upload time");
-
-//      if (sleeping) {
-//        //Force reboot of chip to prevent chip from hanging every 3 or 4 days.
-//        sleeping=false;
-//        softReset();  
-//      }
 
       //This routine is called as soon as possible after the clock ticks past the minute
       //its important to get regular syncronised readings from the solar, or you'll end
       //up with jagged graphs as PVOutput and SolarStats have a minute granularity and truncate seconds.
 
       getTotalPowerGeneration();
+
+      //The inverter always runs in UTC time (and so does this program!), and ignores summer time, so fix that here...
+      //add 1 hour to readings if its summer
+      if ((datetime>=SummerStart) && (datetime<=SummerEnd)) datetime+=60*60;
 
       //Upload value to various websites/services, depending upon frequency
       solarstats.CountDownAndUpload(currentvalue,spotpowerac,spotpowerdc,datetime);     
@@ -217,6 +229,11 @@ void loop()
       //finally, set waiting time...
       checktime=nextMinute(now());
 
+      // check stash free & reset if needed due to bug in EtherCard library
+      if(Stash::freeCount()<10){
+        //debugMsgln("RESET STASH");
+        Stash::initMap(56);
+      }
 
 #ifdef allowsleep
       if ( (now() > (datetime+3600)) && (spotpowerac==0)) {
@@ -236,9 +253,7 @@ void loop()
         time_t midnight=makeTime(tm);
 
         //Move to midnight
-        //debugMsg("Midnight ");
-        //digitalClockDisplay( midnight );
-        //debugMsgln("");
+        //debugMsg("Midnight ");digitalClockDisplay( midnight );debugMsgln("");
 
         if (now() < midnight) {
           //Time to calculate SLEEP time, we only do this if its BEFORE midnight
@@ -266,7 +281,6 @@ void loop()
       ether.packetLoop(ether.packetReceive());     
       delay(50);
     }
-
   }//end while
 } 
 
@@ -275,16 +289,117 @@ time_t nextMinute(time_t t) {
   return t;
 }
 
+void checkIfNeedToSetInverterTime() {
+  //We dont actually use the value this returns, but "datetime" is set from its reply
+  getDailyYield();
+
+  //digitalClockDisplay(now());Serial.println("");
+  //digitalClockDisplay(datetime);Serial.println("");
+
+  unsigned long timediff;
+
+  if (datetime>now()) timediff=datetime-now();  
+  else timediff=now()-datetime; 
+
+//  Serial.println(now(),HEX);
+//  Serial.println(datetime,HEX);
+//  Serial.print("Time diff=");
+//  Serial.println(timediff);
+//  delay(35000);
+
+  if (timediff > 60) {
+    //If inverter clock is out by more than 1 minute, set it to the time from NTP, saves filling up the 
+    //inverters event log with hundred of "change time" lines...
+    setInverterTime();  //Set inverter time to now()
+  }
+}
+
+
+prog_uchar PROGMEM smanet2settime[]=  {  
+  0x8c ,0x0a ,0x02 ,0x00 ,0xf0 ,0x00 ,0x6d ,0x23 ,0x00 ,0x00 ,0x6d ,0x23 ,0x00 ,0x00 ,0x6d ,0x23 ,0x00
+};
+
+void setInverterTime() {
+  //Sets inverter time for those SMA inverters which don't have a realtime clock (Tripower 8000 models for instance)
+
+  //Payload...
+
+  //** 8C 0A 02 00 F0 00 6D 23 00 00 6D 23 00 00 6D 23 00 
+  //   9F AE 99 4F   ==Thu, 26 Apr 2012 20:22:55 GMT  (now)
+  //   9F AE 99 4F   ==Thu, 26 Apr 2012 20:22:55 GMT  (now) 
+  //   9F AE 99 4F   ==Thu, 26 Apr 2012 20:22:55 GMT  (now)
+  //   01 00         ==Timezone +1 hour for BST ?
+  //   00 00 
+  //   A1 A5 99 4F   ==Thu, 26 Apr 2012 19:44:33 GMT  (strange date!)
+  //   01 00 00 00 
+  //   F3 D9         ==Checksum
+  //   7E            ==Trailer
+
+  //Set time to Feb
+
+  //2A 20 63 00 5F 00 B1 00 0B FF B5 01 
+  //7E 5A 00 24 A3 0B 50 DD 09 00 FF FF FF FF FF FF 01 00 
+  //7E FF 03 60 65 10 A0 FF FF FF FF FF FF 00 00 78 00 6E 21 96 37 00 00 00 00 00 00 01 
+  //** 8D 0A 02 00 F0 00 6D 23 00 00 6D 23 00 00 6D 23 00 
+  //14 02 2B 4F ==Thu, 02 Feb 2012 21:37:24 GMT
+  //14 02 2B 4F ==Thu, 02 Feb 2012 21:37:24 GMT 
+  //14 02 2B 4F  ==Thu, 02 Feb 2012 21:37:24 GMT
+  //00 00        ==No time zone/BST not applicable for Feb..
+  //00 00 
+  //AD B1 99 4F  ==Thu, 26 Apr 2012 20:35:57 GMT 
+  //01 00 00 00 
+  //F6 87        ==Checksum
+  //7E
+
+  //2A 20 63 00 5F 00 B1 00 0B FF B5 01 
+  //7E 5A 00 24 A3 0B 50 DD 09 00 FF FF FF FF FF FF 01 00 
+  //7E FF 03 60 65 10 A0 FF FF FF FF FF FF 00 00 78 00 6E 21 96 37 00 00 00 00 00 00 1C 
+  //** 8D 0A 02 00 F0 00 6D 23 00 00 6D 23 00 00 6D 23 00 
+  //F5 B3 99 4F 
+  //F5 B3 99 4F 
+  //F5 B3 99 4F 01 00 00 00 28 B3 99 4F 01 00 00 00 
+  //F3 C7 7E
+
+  //2B 20 63 00 5F 00 DD 00 0B FF B5 01 
+  //7E 5A 00 24 A3 0B 50 DD 09 00 FF FF FF FF FF FF 01 00 
+  //7E FF 03 60 65 10 A0 FF FF FF FF FF FF 00 00 78 00 6E 21 96 37 00 00 00 00 00 00 08 
+  //** 80 0A 02 00 F0 00 6D 23 00 00 6D 23 00 00 6D 23 00 
+  //64 76 99 4F ==Thu, 26 Apr 2012 16:23:00 GMT 
+  //64 76 99 4F ==Thu, 26 Apr 2012 16:23:00 GMT 
+  //64 76 99 4F  ==Thu, 26 Apr 2012 16:23:00 GMT
+  //58 4D   ==19800 seconds = 5.5 hours
+  //00 00 
+  //62 B5 99 4F 
+  //01 00 00 00 
+  //C3 27 7E 
+
+  debugMsgln("setInvTime ");
+  time_t currenttime=now();
+  digitalClockDisplay(currenttime);
+  writePacketHeader(level1packet);
+  writeSMANET2PlusPacket(level1packet,0x09, 0x00, packet_send_counter, 0, 0, 0);
+  writeSMANET2ArrayFromProgmem(level1packet,smanet2settime,sizeof(smanet2settime));
+  writeSMANET2Long(level1packet,currenttime);
+  writeSMANET2Long(level1packet,currenttime);
+  writeSMANET2Long(level1packet,currenttime); 
+  writeSMANET2uint(level1packet,timeZoneOffset);  
+  writeSMANET2uint(level1packet,0);
+  writeSMANET2Long(level1packet,currenttime);  //No idea what this is for...
+  writeSMANET2ArrayFromProgmem(level1packet,smanet2packet0x01000000,sizeof(smanet2packet0x01000000));
+  writeSMANET2PlusPacketTrailer(level1packet);
+  writePacketLength(level1packet);
+  sendPacket(level1packet);
+  packet_send_counter++;
+  //debugMsgln(" done");
+}
 
 prog_uchar PROGMEM smanet2totalyieldWh[]=  {  
   0x54, 0x00, 0x01, 0x26, 0x00, 0xFF, 0x01, 0x26, 0x00};
 
 void getTotalPowerGeneration() {
-
   //Gets the total kWh the SMA inverterhas generated in its lifetime...
   do {
     writePacketHeader(level1packet);
-    //writePacketHeader(level1packet,0x01,0x00,smaBTInverterAddressArray);
     writeSMANET2PlusPacket(level1packet,0x09, 0xa0, packet_send_counter, 0, 0, 0);
     writeSMANET2ArrayFromProgmem(level1packet,smanet2packetx80x00x02x00,sizeof(smanet2packetx80x00x02x00));
     writeSMANET2ArrayFromProgmem(level1packet,smanet2totalyieldWh,sizeof(smanet2totalyieldWh));
@@ -299,23 +414,17 @@ void getTotalPowerGeneration() {
   packet_send_counter++;
 
   //displaySpotValues(16);
-
   memcpy(&datetime,&level1packet[40+1+4],4);
-  memcpy(&value,&level1packet[40+1+8],3);
-
+  //memcpy(&value,&level1packet[40+1+8],3);
   //digitalClockDisplay(datetime);
   //debugMsg('=');Serial.println(value);
   currentvalue=value;
 }
 
-static time_t setTimePeriodically() {
-  debugMsgln("Fake time sync");
-  //Just fake the syncTime functions of time.h
-  return 0;
+static time_t setTimePeriodically() { 
+  return getNtpTime();
 }
 
-prog_uchar PROGMEM smanet2packet99[]= {0x00,0x04,0x70,0x00};
-prog_uchar PROGMEM smanet2packet0[]=  {0x01,0x00,0x00,0x00};
 
 void initialiseSMAConnection() {
 
@@ -325,16 +434,14 @@ void initialiseSMAConnection() {
   //Extract data from the 0002 packet
   unsigned char netid=level1packet[4];
 
-  //debugMsg("sma netid=");Serial.println(netid,HEX);
-
   writePacketHeader(level1packet,0x02,0x00,smaBTInverterAddressArray);
   writeSMANET2ArrayFromProgmem(level1packet,smanet2packet99,sizeof(smanet2packet99));
   writeSMANET2SingleByte(level1packet,netid);
   writeSMANET2ArrayFromProgmem(level1packet,fourzeros,sizeof(fourzeros));
-  writeSMANET2ArrayFromProgmem(level1packet,smanet2packet0,sizeof(smanet2packet0));
+  writeSMANET2ArrayFromProgmem(level1packet,smanet2packet0x01000000,sizeof(smanet2packet0x01000000));
   writePacketLength(level1packet);
   sendPacket(level1packet);
-  
+
   waitForPacket(0x000a);
   while ((cmdcode!=0x000c) && (cmdcode!=0x0005)) {
     readLevel1PacketFromBluetoothStream(0);
@@ -344,12 +451,9 @@ void initialiseSMAConnection() {
     waitForPacket(0x0005);
   }
 
-  //debugMsgln("If we get this far, things are going nicely...."));
-
   do {
     //First SMANET2 packet
     writePacketHeader(level1packet,sixff);
-    //writePacketHeader(level1packet,0x01,0x00,sixff);
     writeSMANET2PlusPacket(level1packet,0x09, 0xa0, packet_send_counter, 0, 0, 0);
     writeSMANET2ArrayFromProgmem(level1packet,smanet2packetx80x00x02x00,sizeof(smanet2packetx80x00x02x00));
     writeSMANET2SingleByte(level1packet,0x00);
@@ -366,10 +470,9 @@ void initialiseSMAConnection() {
 
   //Second SMANET2 packet
   writePacketHeader(level1packet,sixff);
-  //writePacketHeader(level1packet,0x01,0x00,sixff);
   writeSMANET2PlusPacket(level1packet,0x08, 0xa0, packet_send_counter, 0x00, 0x03, 0x03);
   writeSMANET2ArrayFromProgmem(level1packet,smanet2packet2,sizeof(smanet2packet2));
-  
+
   writeSMANET2PlusPacketTrailer(level1packet);
   writePacketLength(level1packet);
   sendPacket(level1packet);
@@ -386,14 +489,14 @@ void logonSMAInverter() {
   debugMsg("*Logon ");
   do {
     writePacketHeader(level1packet,sixff);
-    //writePacketHeader(level1packet,0x01,0x00,sixff);
     writeSMANET2PlusPacket(level1packet,0x0e, 0xa0, packet_send_counter, 0x00, 0x01, 0x01);
     writeSMANET2ArrayFromProgmem(level1packet,smanet2packet_logon,sizeof(smanet2packet_logon));
     writeSMANET2ArrayFromProgmem(level1packet,fourzeros,sizeof(fourzeros));
 
-    //INVERTER PASSWORD - only 4 digits, although it appears packet can hold longer
+    //INVERTER PASSWORD
     for(int passcodeloop=0;passcodeloop<sizeof(SMAInverterPasscode);passcodeloop++) {
-      writeSMANET2SingleByte(level1packet,(SMAInverterPasscode[passcodeloop] + 0x88) % 0xff);
+      unsigned char v=pgm_read_byte(SMAInverterPasscode+passcodeloop);
+      writeSMANET2SingleByte(level1packet,(v + 0x88) % 0xff);
     }
 
     writeSMANET2PlusPacketTrailer(level1packet);
@@ -401,13 +504,10 @@ void logonSMAInverter() {
     sendPacket(level1packet);
 
     waitForPacket(0x0001);
-
-    //dumpPacket('R');
   } 
   while (!validateChecksum());
   packet_send_counter++;
   debugMsgln("Done");
-
 }
 
 void getDailyYield() {
@@ -431,7 +531,23 @@ void getDailyYield() {
   while (!validateChecksum());
   packet_send_counter++;
 
-  //displaySpotValues(16);
+  //Returns packet looking like this...
+  //    7E FF 03 60 65 0D 90 5C AF F0 1D 50 00 00 A0 83 
+  //    00 1E 6C 5D 7E 00 00 00 00 00 00 03 
+  //    80 01 02 00 
+  //    54 01 00 00 00 01 00 00 00 01 
+  //    22 26  //command code 0x2622 daily yield
+  //    00     //unknown
+  //    D6 A6 99 4F  //Unix time stamp (backwards!) = 1335469782 = Thu, 26 Apr 2012 19:49:42 GMT
+  //    D9 26 00     //Daily generation 9.945 kwh
+  //    00 
+  //    00 00 00 00 
+  //    18 61    //checksum
+  //    7E       //packet trailer
+
+  // Does this packet contain the British Summer time flag?
+  //dumpPacket('Y');
+
   valuetype = level1packet[40+1+1]+level1packet[40+2+1]*256;
 
   //Serial.println(valuetype,HEX);
@@ -440,7 +556,7 @@ void getDailyYield() {
     memcpy(&value,&level1packet[40+8+1],3);
     //0x2622=Day Yield Wh
     memcpy(&datetime,&level1packet[40+4+1],4);  
-    setTime(datetime);  
+    //setTime(datetime);  
   }
 }
 
@@ -478,10 +594,38 @@ void getInstantACPower()
 }
 
 
+unsigned long getNtpTime() {
+  unsigned long timeFromNTP;
+
+  if (!ether.dnsLookup( sntpserver )) {
+    //debugMsgln("DNS fail");
+  } 
+  else {
+    //ether.printIp("SRV: ", ether.hisip);
+    ether.ntpRequest(ether.hisip, ntpMyPort);
+    //debugMsgln("NTP request sent");
+    while(true) {
+      word length = ether.packetReceive();
+      ether.packetLoop(length);
+      if(length > 0 && ether.ntpProcessAnswer(&timeFromNTP,ntpMyPort)) {
+        //debugMsgln("NTP reply received");
+
+        timeFromNTP=timeFromNTP - seventy_years + timeZoneOffset;
+        digitalClockDisplay(timeFromNTP);
+
+        return timeFromNTP;
+      }
+    }
+  }
+  return 0;
+}
+
+
 //Returns volts + amps
 //prog_uchar PROGMEM smanet2packetdcpower[]={  0x83, 0x00, 0x02, 0x80, 0x53, 0x00, 0x00, 0x45, 0x00, 0xFF, 0xFF, 0x45, 0x00 };
 // Just DC Power (watts)
-prog_uchar PROGMEM smanet2packetdcpower[]={  0x83, 0x00, 0x02, 0x80, 0x53, 0x00, 0x00, 0x25, 0x00, 0xFF, 0xFF, 0x25, 0x00 };
+prog_uchar PROGMEM smanet2packetdcpower[]={  
+  0x83, 0x00, 0x02, 0x80, 0x53, 0x00, 0x00, 0x25, 0x00, 0xFF, 0xFF, 0x25, 0x00 };
 void getInstantDCPower() {
 
   //DC
@@ -531,8 +675,8 @@ void getInstantDCPower() {
 
 /*
 //Inverter name
-prog_uchar PROGMEM smanet2packetinvertername[]={   0x80, 0x00, 0x02, 0x00, 0x58, 0x00, 0x1e, 0x82, 0x00, 0xFF, 0x1e, 0x82, 0x00};  
-
+ prog_uchar PROGMEM smanet2packetinvertername[]={   0x80, 0x00, 0x02, 0x00, 0x58, 0x00, 0x1e, 0x82, 0x00, 0xFF, 0x1e, 0x82, 0x00};  
+ 
  void getInverterName() {
  
  do {
@@ -559,6 +703,9 @@ prog_uchar PROGMEM smanet2packetinvertername[]={   0x80, 0x00, 0x02, 0x00, 0x58,
  memcpy(&datetime,&level1packet[40+4+1],4);  //Returns date/time unit switched PV off for today (or current time if its still on)
  }
  }
+ 
+ 
+ 
  
  void HistoricData() {
  
@@ -638,6 +785,12 @@ prog_uchar PROGMEM smanet2packetinvertername[]={   0x80, 0x00, 0x02, 0x00, 0x58,
  }
  }
  */
+
+
+
+
+
+
 
 
 

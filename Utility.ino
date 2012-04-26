@@ -19,7 +19,7 @@ NANODE SMA PV MONITOR
  */
 
 
-
+/*
 extern unsigned int __bss_end;
 extern unsigned int __heap_start;
 extern void *__brkval;
@@ -40,7 +40,7 @@ static void HowMuchMemory() {
   Serial.print(F("m="));
   Serial.println(freeMemory());
 }
-
+*/
 
 
 static void error() {
@@ -84,7 +84,7 @@ static void printHexDigits(int digits){
   if(digits <= 0xF) Serial.print('0');
   Serial.print(digits,HEX);
 }
-
+/*
 static void printMacAddress(byte mymac[]) {
   Serial.print(F("MAC="));  
   for(int i=0; i<6; i++) {
@@ -92,6 +92,4 @@ static void printMacAddress(byte mymac[]) {
   }
   Serial.println("");  
 }
-
-
-
+*/

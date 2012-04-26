@@ -133,6 +133,13 @@ void writeSMANET2Long(unsigned char *btbuffer,unsigned long v) {
   writeSMANET2SingleByte(btbuffer,(unsigned char)((v >> 24) & 0xFF)) ;
 }
 
+void writeSMANET2uint(unsigned char *btbuffer,unsigned int v) {
+  writeSMANET2SingleByte(btbuffer,(unsigned char)((v >> 0) & 0XFF));
+  writeSMANET2SingleByte(btbuffer,(unsigned char)((v >> 8) & 0XFF));
+  //writeSMANET2SingleByte(btbuffer,(unsigned char)((v >> 16) & 0xFF)) ;
+  //writeSMANET2SingleByte(btbuffer,(unsigned char)((v >> 24) & 0xFF)) ;
+}
+
 /*
 void displaySpotValues(int gap) {
   unsigned long value = 0;

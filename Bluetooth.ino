@@ -28,7 +28,7 @@ void BTStart() {
 
   if (!readArrayFromEEPROM(myBTAddress,6,ADDRESS_MY_BTADDRESS) || !readArrayFromEEPROM(smaBTInverterAddressArray,6,ADDRESS_SMAINVERTER_BTADDRESS)) 
   {
-    debugMsgln("Chksum fail-pair");
+    debugMsgln("Fail pair");
     BTInitStartup(true);    
   } 
   else BTInitStartup(false);
@@ -111,7 +111,7 @@ void BTScanForSMAInverterToPairWith()
   //Factory reset to defaults
   BTSendStringAndWait(retstring,F("AT+ORGL"));
   //Name of chip
-  BTSendStringAndWait(retstring,F("AT+NAME=NANODE_SMA_SOLAR"));
+  BTSendStringAndWait(retstring,F("AT+NAME=SMA_SOLAR"));
   //Set password to zeros
   BTSendStringAndWait(retstring,F("AT+PSWD=0000"));
   //MASTER mode

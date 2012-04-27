@@ -41,6 +41,8 @@
 static time_t SummerStart=1332637200;  //Sun, 25 Mar 2012 01:00:00 GMT
 static time_t SummerEnd=1351386000;  //Sun, 28 Oct 2012 01:00:00 GMT
 
+
+
 //SMA inverter timezone (note inverter appears ignores summer time saving internally)
 //Need to determine what happens when its a NEGATIVE time zone !
 //Number of seconds for timezone 
@@ -173,8 +175,6 @@ void loop()
   logonSMAInverter();
 
   checkIfNeedToSetInverterTime();
-
-
 
   //getInverterName();
   //HistoricData();
@@ -397,7 +397,7 @@ prog_uchar PROGMEM smanet2totalyieldWh[]=  {
   0x54, 0x00, 0x01, 0x26, 0x00, 0xFF, 0x01, 0x26, 0x00};
 
 void getTotalPowerGeneration() {
-  //Gets the total kWh the SMA inverterhas generated in its lifetime...
+  //Gets the total kWh the SMA inverter has generated in its lifetime...
   do {
     writePacketHeader(level1packet);
     writeSMANET2PlusPacket(level1packet,0x09, 0xa0, packet_send_counter, 0, 0, 0);
@@ -415,7 +415,7 @@ void getTotalPowerGeneration() {
 
   //displaySpotValues(16);
   memcpy(&datetime,&level1packet[40+1+4],4);
-  //memcpy(&value,&level1packet[40+1+8],3);
+  memcpy(&value,&level1packet[40+1+8],3);
   //digitalClockDisplay(datetime);
   //debugMsg('=');Serial.println(value);
   currentvalue=value;
@@ -424,7 +424,6 @@ void getTotalPowerGeneration() {
 static time_t setTimePeriodically() { 
   return getNtpTime();
 }
-
 
 void initialiseSMAConnection() {
 

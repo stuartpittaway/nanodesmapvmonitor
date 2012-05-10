@@ -52,12 +52,12 @@ static time_t SummerEnd=1351386000;  //Sun, 28 Oct 2012 01:00:00 GMT
 #define timeZoneOffset 0*60*60
 
 #undef debugMsgln 
-#define debugMsgln(s) (__extension__(  {Serial.println(F(s));}  ))
-//#define debugMsgln(s) (__extension__(  {__asm__("nop\n\t"); }  ))
+//#define debugMsgln(s) (__extension__(  {Serial.println(F(s));}  ))
+#define debugMsgln(s) (__extension__(  {__asm__("nop\n\t"); }  ))
 
 #undef debugMsg
-#define debugMsg(s) (__extension__(  {Serial.print(F(s));}  ))
-//#define debugMsg(s) (__extension__(  { __asm__("nop\n\t");  }  ))
+//#define debugMsg(s) (__extension__(  {Serial.print(F(s));}  ))
+#define debugMsg(s) (__extension__(  { __asm__("nop\n\t");  }  ))
 
 //Do we switch off upload to sites when its dark?
 #define allowsleep
@@ -230,7 +230,8 @@ void loop()
       checktime=nextMinute(now());
 
       // check stash free & reset if needed due to bug in EtherCard library
-      if(Stash::freeCount()<10){
+      // this code appears to need a high level of buffers free, probably to do with the JSON pachube requests
+      if(Stash::freeCount()<35){
         //debugMsgln("RESET STASH");
         Stash::initMap(56);
       }

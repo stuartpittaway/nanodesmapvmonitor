@@ -184,7 +184,7 @@ void loop()
 
     // DHCP expiration is a bit brutal, because all other ethernet activity and
     // incoming packets will be ignored until a new lease has been acquired
-    if (EtherCard::dhcpValid()){
+    if (! EtherCard::dhcpValid()){
       if (!ether.dhcpSetup())
       {
         //debugMsgln("DHCP fail"); 

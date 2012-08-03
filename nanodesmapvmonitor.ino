@@ -19,7 +19,6 @@
  All code is copyright Stuart Pittaway, (c)2012.
  */
 
-
 //Need to change SoftwareSerial/NewSoftSerial.h file to set buffer to 128 bytes or you will get buffer overruns!
 //Find the line below and change
 //#define _NewSS_MAX_RX_BUFF 128 // RX buffer size
@@ -34,7 +33,6 @@
 #include "Bluetooth.h"
 #include "SMANetArduino.h"
 #include "APIKey.h"
-
 
 //BST Start and end dates - this needs moving into some sort of PROGMEM array for the years or calculated based on the BST logic see 
 //http://www.time.org.uk/bstgmtcodepage1.aspx
@@ -109,7 +107,7 @@ void setup()
 
   //Make sure you have the latest version of NanodeMAC which works on Arduino 1.0
   byte mymac[] = { 
-    0,0,0,0,0,0                                                 };
+    0,0,0,0,0,0                                                   };
   NanodeMAC mac( mymac );
   //printMacAddress(mymac);
 
@@ -136,16 +134,13 @@ void setup()
   //debugMsgln("Done");
 
   //HowMuchMemory();
-
-
-  //  es.ES_enc28j60PowerDown();
-  //  es.ES_enc28j60PowerUp();
 } 
-
 
 void loop() 
 { 
   //debugMsgln("loop");
+
+  ENC28J60::powerUp();
 
   //DNS lookup is done here otherwise the Serial buffer gets overflowed by the inverter trying to send broadcast messages out
   webservicePachube pachube;
@@ -189,7 +184,7 @@ void loop()
 
     // DHCP expiration is a bit brutal, because all other ethernet activity and
     // incoming packets will be ignored until a new lease has been acquired
-    if (ether.dhcpExpired()){
+    if (EtherCard::dhcpValid()){
       if (!ether.dhcpSetup())
       {
         //debugMsgln("DHCP fail"); 
@@ -302,11 +297,11 @@ void checkIfNeedToSetInverterTime() {
   if (datetime>now()) timediff=datetime-now();  
   else timediff=now()-datetime; 
 
-//  Serial.println(now(),HEX);
-//  Serial.println(datetime,HEX);
-//  Serial.print("Time diff=");
-//  Serial.println(timediff);
-//  delay(35000);
+  //  Serial.println(now(),HEX);
+  //  Serial.println(datetime,HEX);
+  //  Serial.print("Time diff=");
+  //  Serial.println(timediff);
+  //  delay(35000);
 
   if (timediff > 60) {
     //If inverter clock is out by more than 1 minute, set it to the time from NTP, saves filling up the 
@@ -785,17 +780,4 @@ void getInstantDCPower() {
  }
  }
  */
-
-
-
-
-
-
-
-
-
-
-
-
-
 

@@ -19,6 +19,7 @@
  All code is copyright Stuart Pittaway, (c)2012.
  */
 
+
 //Need to change SoftwareSerial/NewSoftSerial.h file to set buffer to 128 bytes or you will get buffer overruns!
 //Find the line below and change
 //#define _NewSS_MAX_RX_BUFF 128 // RX buffer size
@@ -33,6 +34,7 @@
 #include "Bluetooth.h"
 #include "SMANetArduino.h"
 #include "APIKey.h"
+
 
 //BST Start and end dates - this needs moving into some sort of PROGMEM array for the years or calculated based on the BST logic see 
 //http://www.time.org.uk/bstgmtcodepage1.aspx
@@ -98,7 +100,7 @@ prog_uchar PROGMEM SMAInverterPasscode[]={
 
 void setup() 
 { 
-  Serial.begin(115200);          //Serial port for debugging output
+  //Serial.begin(115200);          //Serial port for debugging output
 
   pinMode(RED_LED, OUTPUT);
   digitalWrite( RED_LED, LOW);
@@ -107,7 +109,7 @@ void setup()
 
   //Make sure you have the latest version of NanodeMAC which works on Arduino 1.0
   byte mymac[] = { 
-    0,0,0,0,0,0                                                   };
+    0,0,0,0,0,0                                                 };
   NanodeMAC mac( mymac );
   //printMacAddress(mymac);
 
@@ -123,9 +125,9 @@ void setup()
     //ether.printIp("GW:", ether.gwip);
     //ether.printIp("DNS:", ether.dnsip);
 
-    while (ether.clientWaitingGw()) {
-      ether.packetLoop(ether.packetReceive());
-    }
+//    while (ether.clientWaitingGw()) {
+//      ether.packetLoop(ether.packetReceive());
+//    }
   } 
   else { 
     //debugMsgln("DHCP fail"); 
@@ -134,13 +136,18 @@ void setup()
   //debugMsgln("Done");
 
   //HowMuchMemory();
+
+
+  //  es.ES_enc28j60PowerDown();
+  //  es.ES_enc28j60PowerUp();
 } 
+
 
 void loop() 
 { 
-  //debugMsgln("loop");
+  ether.packetLoop(ether.packetReceive());
 
-  ENC28J60::powerUp();
+  //debugMsgln("loop");
 
   //DNS lookup is done here otherwise the Serial buffer gets overflowed by the inverter trying to send broadcast messages out
   webservicePachube pachube;
@@ -158,7 +165,7 @@ void loop()
   setSyncInterval(3600*2);  //2 hours
   setSyncProvider(setTimePeriodically);  //This also fires off a refresh of the time immediately
 
-    digitalWrite( RED_LED, HIGH);
+  digitalWrite( RED_LED, HIGH);
 
   BTStart();
 
@@ -184,13 +191,7 @@ void loop()
 
     // DHCP expiration is a bit brutal, because all other ethernet activity and
     // incoming packets will be ignored until a new lease has been acquired
-    if (! EtherCard::dhcpValid()){
-      if (!ether.dhcpSetup())
-      {
-        //debugMsgln("DHCP fail"); 
-        error(); 
-      }
-    }
+
 
     //Populate datetime and spotpowerac variables with latest values
     //getInstantDCPower();
@@ -204,11 +205,9 @@ void loop()
 
     if (now()>=checktime) 
     {
-
       //This routine is called as soon as possible after the clock ticks past the minute
       //its important to get regular syncronised readings from the solar, or you'll end
       //up with jagged graphs as PVOutput and SolarStats have a minute granularity and truncate seconds.
-
       getTotalPowerGeneration();
 
       //The inverter always runs in UTC time (and so does this program!), and ignores summer time, so fix that here...
@@ -296,12 +295,6 @@ void checkIfNeedToSetInverterTime() {
 
   if (datetime>now()) timediff=datetime-now();  
   else timediff=now()-datetime; 
-
-  //  Serial.println(now(),HEX);
-  //  Serial.println(datetime,HEX);
-  //  Serial.print("Time diff=");
-  //  Serial.println(timediff);
-  //  delay(35000);
 
   if (timediff > 60) {
     //If inverter clock is out by more than 1 minute, set it to the time from NTP, saves filling up the 
@@ -780,4 +773,17 @@ void getInstantDCPower() {
  }
  }
  */
+
+
+
+
+
+
+
+
+
+
+
+
+
 

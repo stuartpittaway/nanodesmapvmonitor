@@ -38,10 +38,9 @@
 
 //BST Start and end dates - this needs moving into some sort of PROGMEM array for the years or calculated based on the BST logic see 
 //http://www.time.org.uk/bstgmtcodepage1.aspx
-static time_t SummerStart=1332637200;  //Sun, 25 Mar 2012 01:00:00 GMT
-static time_t SummerEnd=1351386000;  //Sun, 28 Oct 2012 01:00:00 GMT
-
-
+static time_t SummerStart=1435888800;  //Sunday, 31 March 02:00:00 GMT
+static time_t SummerEnd=1425952800;  //Sunday, 27 October 02:00:00 GMT
+	
 
 //SMA inverter timezone (note inverter appears ignores summer time saving internally)
 //Need to determine what happens when its a NEGATIVE time zone !
@@ -49,7 +48,7 @@ static time_t SummerEnd=1351386000;  //Sun, 28 Oct 2012 01:00:00 GMT
 //    0=UTC (London)
 //19800=5.5hours Chennai, Kolkata
 //36000=Brisbane (UTC+10hrs)
-#define timeZoneOffset 0*60*60
+#define timeZoneOffset 60*60*0
 
 #undef debugMsgln 
 //#define debugMsgln(s) (__extension__(  {Serial.println(F(s));}  ))

@@ -234,13 +234,13 @@ bool readArrayFromEEPROM(unsigned char readbuffer[],int length,int EEPROMoffset)
   return (checksum==EEPROM.read(EEPROMoffset+length)); 
 }
 
-void BTSendStringAndWait(char retstring[],  __FlashStringHelper* str) {
+void BTSendStringAndWait(char retstring[], const __FlashStringHelper* str) {
   Serial.println(str);
   blueToothSerial.println(str);
   waitBlueToothReply(retstring);  
 }
 
-void BTSendStringAndWait(char retstring[], char smabtinverteraddress[14], __FlashStringHelper* str) {
+void BTSendStringAndWait(char retstring[], char smabtinverteraddress[14], const __FlashStringHelper* str) {
   Serial.print(str);
   Serial.println(smabtinverteraddress);
 
